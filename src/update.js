@@ -1,7 +1,7 @@
 import { CFG, GAME_STATE, PLAYER_SPEED, BULLET_SPEED, ENEMY_BULLET_SPEED, FIRE_COOLDOWN, ENEMY_FIRE_CHANCE, HIT_FLASH, STAR_COUNT } from './cfg.js';
 import { bezier3, buildWavePaths, makeDivePath } from './paths.js';
 import { makeEnemy, formationSlot } from './entities.js';
-import { playShot, playExplosion, playHit, playCapture, playBeamStart, playLevelComplete, unlockAudio } from './sfx.js';
+import { playShot, playExplosion, playHit, playCapture, playBeamStart, playLevelComplete, playMenuMusic, playGameplayMusic, playEndingMusic, stopAllMusic, unlockAudio } from './sfx.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -306,6 +306,7 @@ export function resetGame(state) {
   state.ebullets.length = 0;
   state.enemies.length = 0;
   state.explosions.length = 0;
+  state.powerups.length = 0;
 
   state.player.x = state.VIEW_W / 2 - 12;
   state.player.y = state.VIEW_H - 28;
@@ -316,8 +317,14 @@ export function resetGame(state) {
   state.player.flash = 0;
   state.player.captured = false;
   state.player.captureT = 0;
+  state.player.dual = false;
   state.captorId = null;
   state.capturedShip = null;
+  state.rescueShip = null;
+  state.treatActive = false;
+  state.treatT = 0;
+  state.fishActive = false;
+  state.fishT = 0;
   state.beams.length = 0;
   state.beamReserved = {};
 
@@ -374,8 +381,17 @@ export function update(dt, state, keys) {
 }
 
 function updateTitle(dt, state, keys) {
+  // Start menu music on first frame in title
+  if (!window.titleMusicStarted) {
+    playMenuMusic();
+    window.titleMusicStarted = true;
+  }
+  
   // Press ENTER to start
   if (keys.has('enter')) {
+    stopAllMusic();
+    window.titleMusicStarted = false;
+    window.gameplayMusicStarted = false;
     resetGame(state);
   }
 }
@@ -397,13 +413,30 @@ function updateGameOver(dt, state, keys) {
 }
 
 function updateVictory(dt, state, keys) {
+  // Play ending music on first frame in victory
+  if (!window.victoryMusicStarted) {
+    playEndingMusic();
+    window.victoryMusicStarted = true;
+  }
+  
   // Press ENTER to restart
   if (keys.has('enter')) {
+    stopAllMusic();
+    window.victoryMusicStarted = false;
+    window.titleMusicStarted = false;
+    window.gameplayMusicStarted = false;
     resetGame(state);
   }
 }
 
 function updatePlaying(dt, state, keys) {
+  // Start gameplay music on first frame
+  if (!window.gameplayMusicStarted) {
+    stopAllMusic();
+    playGameplayMusic();
+    window.gameplayMusicStarted = true;
+  }
+  
   // Reset hit flag at start of frame to allow collision detection
   state.player.hitThisFrame = false;
   
