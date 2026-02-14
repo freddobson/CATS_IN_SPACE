@@ -15,7 +15,14 @@ export function beginView(ctx, VIEW_W, VIEW_H) {
 
 export function endView(ctx) { ctx.restore(); }
 
-function drawShip(ctx, x, y) {
+function drawShip(ctx, state, x, y) {
+  // If a player image is loaded, draw it; otherwise fallback to blocks
+  const img = state.assets && state.assets.player;
+  if (img) {
+    ctx.drawImage(img, Math.floor(x), Math.floor(y), state.player.w, state.player.h);
+    return;
+  }
+
   ctx.fillRect(x + 5, y + 0, 2, 2);
   ctx.fillRect(x + 4, y + 2, 4, 2);
   ctx.fillRect(x + 2, y + 4, 8, 2);
@@ -23,14 +30,23 @@ function drawShip(ctx, x, y) {
   ctx.fillRect(x + 3, y + 8, 6, 2);
 }
 
-function drawEnemy(ctx, e) {
+function drawEnemy(ctx, state, e) {
   const x = Math.floor(e.x), y = Math.floor(e.y);
-  if (e.kind === "boss") {
+  const assets = state.assets || {};
+  if (e.kind === 'boss') {
+    if (assets.boss) {
+      ctx.drawImage(assets.boss, x, y, e.w, e.h);
+      return;
+    }
     ctx.fillRect(x + 2, y + 1, 10, 2);
     ctx.fillRect(x + 1, y + 3, 12, 3);
     ctx.fillRect(x + 3, y + 6, 8, 3);
     ctx.fillRect(x + 5, y + 9, 4, 2);
   } else {
+    if (assets.bee) {
+      ctx.drawImage(assets.bee, x, y, e.w, e.h);
+      return;
+    }
     ctx.fillRect(x + 3, y + 1, 6, 2);
     ctx.fillRect(x + 2, y + 3, 8, 3);
     ctx.fillRect(x + 4, y + 6, 4, 3);
@@ -58,13 +74,13 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
   // enemies
   for (const e of state.enemies) {
     ctx.fillStyle = e.flash > 0 ? "#ffffff" : (e.kind === "boss" ? "#ffd14a" : "#6db6ff");
-    drawEnemy(ctx, e);
+    drawEnemy(ctx, state, e);
   }
 
   // player
   if (state.player.alive) {
     ctx.fillStyle = state.player.flash > 0 ? "#ffffff" : "#7CFF6B";
-    drawShip(ctx, state.player.x | 0, state.player.y | 0);
+    drawShip(ctx, state, state.player.x | 0, state.player.y | 0);
   }
 
   // explosions
