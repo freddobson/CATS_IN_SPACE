@@ -276,10 +276,13 @@ export function update(dt, state, keys) {
           const bId = e.beamId || Math.random().toString(36).slice(2);
           const endP = segNow.p3;
           e.x = endP.x - e.w/2; e.y = endP.y - e.h/2;
+          // fix the captor Y so it doesn't jitter during beam extension
+          e.fixedY = endP.y - Math.floor(e.h/2);
           const finalCenterY = endP.y;
           const estimatedDy = Math.max(0, state.player.y - finalCenterY);
-          const maxLen = Math.max(80, estimatedDy + 60);
-          state.beams.push({ id: bId, enemyId: e.id, life: CFG.beamDuration, active: true, phase: 'extend', len: 0, maxLen });
+          const maxLen = Math.max(120, estimatedDy + 80);
+          // create beam but don't start life countdown until it reaches full size
+          state.beams.push({ id: bId, enemyId: e.id, life: 0, active: true, phase: 'extend', len: 0, maxLen, full: false });
           // leave e.beaming true until beam ends; switch to 'beam' mode
           e.mode = 'beam';
         } else {
@@ -496,17 +499,15 @@ export function update(dt, state, keys) {
     if (captor && b.phase === 'extend') {
       // extend beam length
       b.len = Math.min(b.maxLen, b.len + (CFG.beamPullSpeed || 90) * dt);
-      // move captor down toward targetY (prefer the beamdive final y if available)
-      if (captor.beaming) {
-        let targetY = captor.beamTargetY;
-        if (captor.beamPath && captor.beamPath.length) {
-          const last = captor.beamPath[captor.beamPath.length - 1].p3;
-          // position the captor so its top is at last.y - half height
-          targetY = Math.max(targetY || 0, last.y - Math.floor(captor.h / 2));
-        }
-        if (typeof targetY === 'number') {
-          captor.y = Math.min(targetY, captor.y + (CFG.beamDiveSpeed || 90) * dt);
-        }
+      // lock captor to fixedY if available to avoid jitter
+      if (captor.beaming && typeof captor.fixedY === 'number') {
+        captor.y = captor.fixedY;
+      }
+
+      // if beam reached full length, mark it full and begin life countdown
+      if (!b.full && b.len >= b.maxLen) {
+        b.full = true;
+        b.life = CFG.beamDuration || 3.0; // start timeout from full size
       }
 
       // cone half-width grows with length
@@ -517,10 +518,12 @@ export function update(dt, state, keys) {
         const coneExtra = CFG.beamConeSpread || 60;
         const halfAtDy = baseHalf + (dy / b.maxLen) * coneExtra;
         if (Math.abs(dx) <= halfAtDy) {
-          // player touched by cone -> capture
+          // player touched by cone -> capture; snap player immediately behind captor
           state.player.captured = true;
           state.player.captureT = 0;
           state.captorId = captor.id;
+          state.player.x = Math.round(captor.x + captor.w / 2 - state.player.w / 2);
+          state.player.y = Math.round(captor.y - state.player.h - 2);
           b.phase = 'latched';
           b.active = false;
         }
@@ -540,11 +543,11 @@ export function update(dt, state, keys) {
       }
     }
 
-    if (b.life <= 0) {
-      // when beam duration ends, set up captor to return along mirrored path
+    if (b.full && b.life <= 0) {
+      // when beam full-time ends, set up captor to return along mirrored path
       if (captor) {
         captor.beaming = false;
-        // build a return path by reversing the beamPath segments
+        // build a return path by reversing the beamPath segments (if available)
         if (captor.beamPath && captor.beamPath.length) {
           const ret = captor.beamPath.slice().reverse().map(s => ({
             p0: s.p3,
@@ -582,6 +585,10 @@ export function update(dt, state, keys) {
       }
       // do not clear state.captorId here; it will be cleared when return completes
       state.beams.splice(i, 1);
+    } else if (!b.full && b.phase === 'extend' && b.len >= b.maxLen) {
+      // ensure full flag if we reached full length but life wasn't set (safety)
+      b.full = true;
+      b.life = CFG.beamDuration || 3.0;
     }
   }
 
