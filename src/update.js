@@ -67,6 +67,7 @@ export function createState(VIEW_W, VIEW_H) {
     formation,
     diveTimer: CFG.diveEvery,
     captorId: null,
+    capturedShip: null, // visual representation of captured player following captor
     beams: [],
     gameOver: false,
   };
@@ -117,13 +118,8 @@ export function releaseCaptor(state) {
     }
   }
 
-  // release player
-  if (state.player) {
-    state.player.captured = false;
-    state.player.invulnerable = false;
-    state.player.captureT = 0;
-  }
-
+  // Clear capturedShip if it exists
+  state.capturedShip = null;
   state.captorId = null;
 }
 
@@ -207,6 +203,7 @@ export function resetGame(state) {
   state.player.captured = false;
   state.player.captureT = 0;
   state.captorId = null;
+  state.capturedShip = null;
   state.beams.length = 0;
   state.beamReserved = {};
 
@@ -562,14 +559,6 @@ function updatePlaying(dt, state, keys) {
     if (e.mode === 'spawning') continue;
     
     if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
-      // if player is invulnerable (captured) AND this is the captor, allow overlap
-      if (state.player.invulnerable) {
-        // Skip collision if this is the captor holding the player
-        if (state.captorId === e.id) continue;
-        // Also skip for other enemies (they shouldn't ram captured player)
-        continue;
-      }
-
       // damage player, spawn explosion, and remove the enemy
       state.player.flash = 0.25;
       state.player.lives--;
@@ -636,11 +625,8 @@ function updatePlaying(dt, state, keys) {
     for (let i = state.ebullets.length - 1; i >= 0; i--) {
       const b = state.ebullets[i];
       if (aabb(b, state.player)) {
-        // if player is invulnerable (e.g., captured), remove bullet but ignore damage
+        // Remove bullet and damage player
         state.ebullets.splice(i, 1);
-        if (state.player.invulnerable) {
-          break;
-        }
 
         state.player.flash = 0.25;
         state.player.lives--;
@@ -748,19 +734,40 @@ function updatePlaying(dt, state, keys) {
 
       // cone half-width grows with length
       const dy = (state.player.y + state.player.h/2) - (captor.y + captor.h);
-      if (dy > 0 && dy <= b.len && !state.player.captured && state.player.alive) {
+      if (dy > 0 && dy <= b.len && !state.capturedShip && state.player.alive) {
         const dx = (state.player.x + state.player.w/2) - (captor.x + captor.w/2);
         const baseHalf = (CFG.beamWidth || 10) / 2;
         const coneExtra = CFG.beamConeSpread || 60;
         const halfAtDy = baseHalf + (dy / b.maxLen) * coneExtra;
         if (Math.abs(dx) <= halfAtDy) {
-          // player touched by cone -> capture; snap player immediately behind captor
-          state.player.captured = true;
-          state.player.captureT = 0;
-          state.player.invulnerable = true;
-          state.captorId = captor.id;
-          state.player.x = Math.round(captor.x + captor.w / 2 - state.player.w / 2);
-          state.player.y = Math.round(captor.y - state.player.h - 2);
+          // player touched by cone -> capture!
+          // Lose a life and respawn new player, captured ship follows captor
+          state.player.lives--;
+          state.player.flash = 0.25;
+          
+          if (state.player.lives <= 0) {
+            // Game over - no respawn
+            state.player.alive = false;
+            state.gameOver = true;
+          } else {
+            // Create capturedShip visual that will follow the captor
+            state.capturedShip = {
+              x: state.player.x,
+              y: state.player.y,
+              w: state.player.w,
+              h: state.player.h,
+            };
+            state.captorId = captor.id;
+            
+            // Respawn active player at bottom
+            state.player.x = state.VIEW_W / 2 - 6;
+            state.player.y = state.VIEW_H - 28;
+            state.player.captured = false;
+            state.player.invulnerable = false;
+            state.player.captureT = 0;
+            state.player.fireCd = FIRE_COOLDOWN; // brief cooldown on respawn
+          }
+          
           b.phase = 'latched';
           b.active = false;
           // start beam timeout from capture if not already started
@@ -779,20 +786,18 @@ function updatePlaying(dt, state, keys) {
     }
   }
 
-  // while captured, lock player to captor position (moved outside beam loop)
-  // This ensures player follows captor even after beam expires
-  if (state.player.captured && state.captorId) {
+  // Position capturedShip to follow captor (moved outside beam loop)
+  // This ensures capturedShip follows captor even after beam expires
+  if (state.capturedShip && state.captorId) {
     const cap = state.enemies.find(en => en.id === state.captorId);
     if (!cap) {
-      // Captor is gone, release the player
-      state.player.captured = false;
-      state.player.invulnerable = false;
+      // Captor is gone, remove capturedShip
+      state.capturedShip = null;
       state.captorId = null;
     } else {
-      // Lock player position behind/above captor
-      state.player.x = Math.round(cap.x + cap.w / 2 - state.player.w / 2);
-      state.player.y = Math.round(cap.y - state.player.h - 2);
-      state.player.captureT += dt;
+      // Lock capturedShip position behind/above captor
+      state.capturedShip.x = Math.round(cap.x + cap.w / 2 - state.capturedShip.w / 2);
+      state.capturedShip.y = Math.round(cap.y - state.capturedShip.h - 2);
     }
   }
 

@@ -166,6 +166,14 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
     drawShip(ctx, state, state.player.x | 0, state.player.y | 0);
   }
 
+  // capturedShip (if exists, draw it following the captor)
+  if (state.capturedShip) {
+    ctx.fillStyle = "#7CFF6B";
+    ctx.globalAlpha = 0.9; // slightly transparent to show it's captured
+    drawShip(ctx, state, state.capturedShip.x | 0, state.capturedShip.y | 0);
+    ctx.globalAlpha = 1.0; // reset
+  }
+
   // explosions
   ctx.fillStyle = "#ffffff";
   for (const p of state.explosions) ctx.fillRect(p.x | 0, p.y | 0, 2, 2);
