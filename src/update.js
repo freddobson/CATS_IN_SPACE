@@ -133,8 +133,9 @@ function countDivers(state) {
 function pickDiver(state) {
   const inForm = state.enemies.filter(e => e.mode === 'formation');
   if (!inForm.length) return null;
-  const bees = inForm.filter(e => e.kind !== 'boss');
-  const pool = bees.length ? bees : inForm;
+  // Don't pick enemies that can beam - they should only beam, not dive
+  const nonBeamers = inForm.filter(e => !e.canBeam);
+  const pool = nonBeamers.length ? nonBeamers : inForm;
   return pool[(Math.random() * pool.length) | 0];
 }
 
@@ -178,13 +179,13 @@ export function spawnWave(state) {
       { col: 5, row: 2, kind: 'mouse',   path: 'loopR' },
     ],
     
-    // Wave 3: Balls of yarn appear!
+    // Wave 3: Balls of yarn appear! (first laser boss!)
     [
       { col: 2, row: 0, kind: 'mouse',  path: 'left'  },
       { col: 7, row: 0, kind: 'mouse',  path: 'right' },
       { col: 3, row: 1, kind: 'yarn',   path: 'loopL' },
       { col: 6, row: 1, kind: 'yarn',   path: 'loopR' },
-      { col: 4, row: 2, kind: 'feather', path: 'loopL' },
+      { col: 4, row: 2, kind: 'laser',  path: 'loopL' },
       { col: 5, row: 2, kind: 'feather', path: 'loopR' },
     ],
     
@@ -392,6 +393,9 @@ function updateVictory(dt, state, keys) {
 }
 
 function updatePlaying(dt, state, keys) {
+  // Reset hit flag at start of frame to allow collision detection
+  state.player.hitThisFrame = false;
+  
   // Check for pause
   if (keys.has('escape') || keys.has('p')) {
     keys.delete('escape');
@@ -604,7 +608,8 @@ function updatePlaying(dt, state, keys) {
       e.x = e.slotX - e.w/2 + sway;
       e.y = e.slotY - e.h/2;
 
-      if (!state.gameOver && state.player.alive) {
+      // Enemy bullet firing (can be disabled for testing)
+      if (!state.gameOver && state.player.alive && !CFG.enemiesDontFire) {
         const chance = ENEMY_FIRE_CHANCE * dt * 60;
         if (Math.random() < chance) {
           const dx = (state.player.x + state.player.w/2) - (e.x + e.w/2);
@@ -612,9 +617,10 @@ function updatePlaying(dt, state, keys) {
             state.ebullets.push({ x: e.x + e.w/2 - 1, y: e.y + e.h, w: 2, h: 6, vy: ENEMY_BULLET_SPEED });
           }
         }
+      }
 
-        // Boss beam attack (capture) - only if no current captor
-        if (e.canBeam && !state.captorId && Math.random() < (CFG.beamChance || 0) * dt * 60) {
+      // Boss beam attack (capture) - only if no current captor (always active, even if enemiesDontFire)
+      if (!state.gameOver && state.player.alive && e.canBeam && !state.captorId && Math.random() < (CFG.beamChance || 0) * dt * 60) {
           // reserve this captor immediately to avoid race with other bosses
           const beamId = Math.random().toString(36).slice(2);
           state.captorId = e.id;
@@ -652,7 +658,6 @@ function updatePlaying(dt, state, keys) {
           e.segDurs = e.beamPath.map(s => Math.max(0.06, (s._len || 20) / speed));
           e.segDur = e.segDurs[0];
           playBeamStart();
-        }
       }
     }
   }
@@ -662,8 +667,9 @@ function updatePlaying(dt, state, keys) {
   for (const e of state.enemies) {
     if (e.mode === 'spawning') continue;
     
-    if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
+    if (!state.gameOver && state.player.alive && !state.player.hitThisFrame && aabb(e, state.player)) {
       // damage player, spawn explosion, and remove the enemy
+      state.player.hitThisFrame = true;
       state.player.flash = 0.25;
       state.player.lives--;
       playHit();
@@ -727,13 +733,14 @@ function updatePlaying(dt, state, keys) {
   }
 
   // collisions: enemy bullets -> player
-  if (!state.gameOver && state.player.alive) {
+  if (!state.gameOver && state.player.alive && !state.player.hitThisFrame) {
     for (let i = state.ebullets.length - 1; i >= 0; i--) {
       const b = state.ebullets[i];
       if (aabb(b, state.player)) {
         // Remove bullet and damage player
         state.ebullets.splice(i, 1);
 
+        state.player.hitThisFrame = true;
         state.player.flash = 0.25;
         state.player.lives--;
         playHit();
@@ -841,7 +848,7 @@ function updatePlaying(dt, state, keys) {
 
       // cone half-width grows with length
       const dy = (state.player.y + state.player.h/2) - (captor.y + captor.h);
-      if (dy > 0 && dy <= b.len && !state.capturedShip && state.player.alive) {
+      if (dy > 0 && dy <= b.len && !state.capturedShip && state.player.alive && !state.player.hitThisFrame) {
         const dx = (state.player.x + state.player.w/2) - (captor.x + captor.w/2);
         const baseHalf = (CFG.beamWidth || 10) / 2;
         const coneExtra = CFG.beamConeSpread || 60;
@@ -849,6 +856,7 @@ function updatePlaying(dt, state, keys) {
         if (Math.abs(dx) <= halfAtDy) {
           // player touched by cone -> capture!
           // Lose a life and respawn new player, captured ship follows captor
+          state.player.hitThisFrame = true;
           state.player.lives--;
           state.player.flash = 0.25;
           playCapture();

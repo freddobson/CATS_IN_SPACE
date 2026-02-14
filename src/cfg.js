@@ -18,8 +18,8 @@ export const CFG = {
   tile: 1,
   starCount: 120,
 
-  // player (speeds reduced 33% for bigger sprites)
-  playerSpeed: 87,
+  // player (speeds reduced 33% for bigger sprites, then +10%)
+  playerSpeed: 96,
   fireCooldown: 0.18,
   lives: 3,
 
@@ -29,6 +29,9 @@ export const CFG = {
 
   // enemies
   enemyFireRate: 0.015,
+  
+  // debug
+  enemiesDontFire: true, // Set to true to disable enemy shooting (for testing)
 
   // effects
   hitFlash: 0.08,
@@ -48,7 +51,7 @@ export const CFG = {
   diveSpeed: 147,
 
   // beam (boss capture, adjusted for bigger sprites)
-  beamChance: 0.12,
+  beamChance: 0.2,
   beamDuration: 1.2,
   beamWidth: 20,
   beamPullSpeed: 60,
