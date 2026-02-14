@@ -278,6 +278,7 @@ export function update(dt, state, keys) {
           e.x = endP.x - e.w/2; e.y = endP.y - e.h/2;
           // fix the captor Y so it doesn't jitter during beam extension
           e.fixedY = endP.y - Math.floor(e.h/2);
+          e.fixedX = endP.x - Math.floor(e.w/2);
           // ensure the captor's visible y is set immediately
           e.y = e.fixedY;
           const finalCenterY = endP.y;
@@ -367,10 +368,17 @@ export function update(dt, state, keys) {
         // if this return was from a beam, clear captor reservation now
         if (e.returningFromBeam) {
           e.returningFromBeam = false;
-          // release captor reservation
+          // release captor reservation and release captured player
           if (state.captorId === e.id) state.captorId = null;
+          if (state.player.captured) {
+            state.player.captured = false;
+            state.player.captureT = 0;
+          }
         }
+        // cleanup any fixed positions
         delete e.beamPath;
+        delete e.fixedY;
+        delete e.fixedX;
       } else {
         const p = bezier3(cur.p0, cur.p1, cur.p2, cur.p3, clamp(e.t, 0, 1));
         e.x = p.x - e.w/2; e.y = p.y - e.h/2;
@@ -498,12 +506,15 @@ export function update(dt, state, keys) {
     const captor = state.enemies.find(en => en.id === b.enemyId);
 
     // beam behavior: extend toward player; captor dives down; if cone touches player -> capture
-    if (captor && b.phase === 'extend') {
+      if (captor && b.phase === 'extend') {
       // extend beam length
       b.len = Math.min(b.maxLen, b.len + (CFG.beamPullSpeed || 90) * dt);
       // lock captor to fixedY if available to avoid jitter
       if (captor.beaming && typeof captor.fixedY === 'number') {
         captor.y = captor.fixedY;
+      }
+      if (captor.beaming && typeof captor.fixedX === 'number') {
+        captor.x = captor.fixedX;
       }
 
       // if beam reached full length, mark it full and begin life countdown
@@ -528,6 +539,11 @@ export function update(dt, state, keys) {
           state.player.y = Math.round(captor.y - state.player.h - 2);
           b.phase = 'latched';
           b.active = false;
+          // start beam timeout from capture if not already started
+          if (!b.full) {
+            b.full = true;
+            b.life = CFG.beamDuration || 3.0;
+          }
         }
       }
     }
