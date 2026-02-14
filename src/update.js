@@ -436,6 +436,15 @@ function updatePlaying(dt, state, keys) {
       continue; // skip other logic while diving
     }
 
+    // beam mode: hold position while beam is active (waiting for timeout to trigger return)
+    if (e.mode === 'beam') {
+      // Lock position using fixed coordinates if available
+      if (typeof e.fixedX === 'number') e.x = e.fixedX;
+      if (typeof e.fixedY === 'number') e.y = e.fixedY;
+      // The beam timeout logic will switch this to 'return' mode when beam expires
+      continue;
+    }
+
     // collision: enemy -> player (dive-bomb or ram)
     if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
       // if player is invulnerable (captured), ignore ram collisions
@@ -514,6 +523,7 @@ function updatePlaying(dt, state, keys) {
           if (state.captorId === e.id) state.captorId = null;
           if (state.player.captured) {
             state.player.captured = false;
+            state.player.invulnerable = false;
             state.player.captureT = 0;
           }
         }
@@ -603,6 +613,12 @@ function updatePlaying(dt, state, keys) {
         if (e.hp <= 0) {
           state.player.score += e.score;
           boom(state, e.x + e.w/2, e.y + e.h/2, e.kind === 'boss' ? 14 : 10);
+          
+          // If this enemy was the captor, release capture state
+          if (state.captorId === e.id) {
+            releaseCaptor(state);
+          }
+          
           state.enemies.splice(ei, 1);
         }
         break;
@@ -647,13 +663,70 @@ function updatePlaying(dt, state, keys) {
   // beams aging & simple capture handling
   for (let i = state.beams.length - 1; i >= 0; i--) {
     const b = state.beams[i];
-    b.life -= dt;
+    
+    // Only decrement life if beam is full
+    if (b.full) {
+      b.life -= dt;
+    }
 
     // find the enemy that fired this beam
     const captor = state.enemies.find(en => en.id === b.enemyId);
+    
+    // If captor is dead, clean up beam and release player
+    if (!captor) {
+      if (state.captorId === b.enemyId) {
+        state.player.captured = false;
+        state.player.invulnerable = false;
+        state.captorId = null;
+      }
+      state.beams.splice(i, 1);
+      continue;
+    }
+
+    // Check for beam timeout FIRST (before processing phases)
+    if (b.full && b.life <= 0) {
+      // when beam full-time ends, set up captor to return along mirrored path
+      captor.beaming = false;
+      
+      // build a return path from current center to formation slot center
+      const curCx = captor.x + captor.w/2;
+      const curCy = captor.y + captor.h/2;
+      const targetCx = captor.slotX;
+      const targetCy = captor.slotY;
+      const retSeg = {
+        p0: { x: curCx, y: curCy },
+        p1: { x: curCx + (curCx < targetCx ? 20 : -20), y: curCy - 30 },
+        p2: { x: targetCx + (Math.random() - 0.5) * 40, y: targetCy - 30 },
+        p3: { x: targetCx, y: targetCy }
+      };
+      retSeg._len = segLength(retSeg);
+      const ret = [retSeg];
+      const speed = (CFG.beamDiveSpeed || 90) * 0.8;
+      captor.path = ret;
+      captor.mode = 'return';
+      captor.segIdx = 0;
+      captor.t = 0;
+      captor.segDurs = captor.path.map(s => Math.max(0.06, (s._len || 20) / speed));
+      captor.segDur = captor.segDurs[0];
+      captor.returningFromBeam = true;
+      
+      // cleanup captor state
+      delete captor.beamPath;
+      delete captor.fixedY;
+      delete captor.fixedX;
+      
+      // clear reservation
+      if (state.beamReserved && state.beamReserved[b.id]) {
+        delete state.beamReserved[b.id];
+      }
+      
+      // remove beam
+      state.beams.splice(i, 1);
+      continue;
+    }
 
     // beam behavior: extend toward player; captor dives down; if cone touches player -> capture
-      if (captor && b.phase === 'extend') {
+    if (b.phase === 'extend') {
       // extend beam length
       b.len = Math.min(b.maxLen, b.len + (CFG.beamPullSpeed || 90) * dt);
       // lock captor to fixedY if available to avoid jitter
@@ -709,55 +782,8 @@ function updatePlaying(dt, state, keys) {
       }
     }
 
-    if (b.full && b.life <= 0) {
-      // when beam full-time ends, set up captor to return along mirrored path
-      if (captor) {
-        captor.beaming = false;
-        // build a return path by reversing the beamPath segments (if available)
-        if (captor.beamPath && captor.beamPath.length) {
-          // build a smoother return path from current center to formation slot center
-          const curCx = captor.x + captor.w/2;
-          const curCy = captor.y + captor.h/2;
-          const targetCx = captor.slotX;
-          const targetCy = captor.slotY;
-          const retSeg = {
-            p0: { x: curCx, y: curCy },
-            p1: { x: curCx + (curCx < targetCx ? 20 : -20), y: curCy - 30 },
-            p2: { x: targetCx + (Math.random() - 0.5) * 40, y: targetCy - 30 },
-            p3: { x: targetCx, y: targetCy }
-          };
-          retSeg._len = segLength(retSeg);
-          const ret = [retSeg];
-          const speed = (CFG.beamDiveSpeed || 90) * 0.8;
-          captor.path = ret;
-          captor.mode = 'return';
-          captor.segIdx = 0;
-          captor.t = 0;
-          captor.segDurs = captor.path.map(s => Math.max(0.06, (s._len || 20) / speed));
-          captor.segDur = captor.segDurs[0];
-          captor.returningFromBeam = true;
-        } else {
-          // fallback: snap back
-          if (typeof captor.beamOrigY === 'number') {
-            captor.y = captor.beamOrigY;
-            delete captor.beamOrigY;
-            delete captor.beamTargetY;
-          }
-          if (state.player.captured && state.captorId === captor.id) {
-            state.player.captured = false;
-            state.captorId = null;
-          }
-        }
-      }
-
-      // clear any reservation for this beam id
-      if (state.beamReserved && state.beamReserved[b.id]) {
-        delete state.beamReserved[b.id];
-      }
-      // do not clear state.captorId here; it will be cleared when return completes
-      state.beams.splice(i, 1);
-    } else if (!b.full && b.phase === 'extend' && b.len >= b.maxLen) {
-      // ensure full flag if we reached full length but life wasn't set (safety)
+    // Safety check: if beam is full but phase is still extend (never captured), mark it ready for timeout
+    if (!b.full && b.phase === 'extend' && b.len >= b.maxLen) {
       b.full = true;
       b.life = CFG.beamDuration || 3.0;
     }
