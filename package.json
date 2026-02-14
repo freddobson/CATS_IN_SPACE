@@ -1,0 +1,9 @@
+{
+  "name": "gizmos_revenge",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "serve": "npx serve -s . -l 8000"
+  }
+}
