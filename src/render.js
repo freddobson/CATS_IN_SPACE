@@ -175,7 +175,22 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
   // player
   if (state.player.alive) {
     ctx.fillStyle = state.player.flash > 0 ? "#ffffff" : "#7CFF6B";
-    drawShip(ctx, state, state.player.x | 0, state.player.y | 0);
+    if (state.player.dual) {
+      // Draw two ships side by side for dual mode
+      const cx = state.player.x + state.player.w / 2;
+      drawShip(ctx, state, (cx - CFG.dualShotSpacing - state.player.w / 2) | 0, state.player.y | 0);
+      drawShip(ctx, state, (cx + CFG.dualShotSpacing - state.player.w / 2) | 0, state.player.y | 0);
+    } else {
+      drawShip(ctx, state, state.player.x | 0, state.player.y | 0);
+    }
+  }
+
+  // rescue ship (falling captured ship)
+  if (state.rescueShip) {
+    ctx.fillStyle = "#7CFF6B";
+    ctx.globalAlpha = 0.8;
+    drawShip(ctx, state, state.rescueShip.x - state.rescueShip.w / 2 | 0, state.rescueShip.y | 0);
+    ctx.globalAlpha = 1.0;
   }
 
   // capturedShip (if exists, draw it following the captor)

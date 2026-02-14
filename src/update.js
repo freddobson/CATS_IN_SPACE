@@ -40,6 +40,7 @@ export function createState(VIEW_W, VIEW_H) {
     flash: 0,
     captured: false,
     captureT: 0,
+    dual: false, // Dual fighter mode after rescue
   };
 
   const formation = {
@@ -69,6 +70,7 @@ export function createState(VIEW_W, VIEW_H) {
     diveTimer: CFG.diveEvery,
     captorId: null,
     capturedShip: null, // visual representation of captured player following captor
+    rescueShip: null, // falling ship that player can catch for dual mode
     beams: [],
     gameOver: false,
   };
@@ -457,7 +459,30 @@ function updatePlaying(dt, state, keys) {
     state.player.x = clamp(state.player.x, 6, state.VIEW_W - state.player.w - 6);
 
     if (fire && state.player.fireCd <= 0) {
-      state.bullets.push({ x: state.player.x + state.player.w/2 - 1.5, y: state.player.y - 6, w: 3, h: 18, vy: -BULLET_SPEED });
+      if (state.player.dual) {
+        // Dual mode: fire from both ships
+        const cx = state.player.x + state.player.w / 2;
+        state.bullets.push({ 
+          x: cx - CFG.dualShotSpacing - 1.5, 
+          y: state.player.y - 6, 
+          w: 3, h: 18, 
+          vy: -BULLET_SPEED 
+        });
+        state.bullets.push({ 
+          x: cx + CFG.dualShotSpacing - 1.5, 
+          y: state.player.y - 6, 
+          w: 3, h: 18, 
+          vy: -BULLET_SPEED 
+        });
+      } else {
+        // Single mode
+        state.bullets.push({ 
+          x: state.player.x + state.player.w/2 - 1.5, 
+          y: state.player.y - 6, 
+          w: 3, h: 18, 
+          vy: -BULLET_SPEED 
+        });
+      }
       state.player.fireCd = FIRE_COOLDOWN;
       playShot();
     }
@@ -476,6 +501,30 @@ function updatePlaying(dt, state, keys) {
     const b = state.ebullets[i];
     b.y += b.vy * dt;
     if (b.y > state.VIEW_H + 20) state.ebullets.splice(i, 1);
+  }
+
+  // rescue ship (falling captured ship)
+  if (state.rescueShip) {
+    state.rescueShip.y += state.rescueShip.vy * dt;
+    
+    // Check if player catches it
+    if (!state.gameOver && state.player.alive) {
+      const dx = (state.player.x + state.player.w / 2) - (state.rescueShip.x);
+      const dy = (state.player.y + state.player.h / 2) - (state.rescueShip.y);
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist <= CFG.rescueCatchRadius) {
+        state.rescueShip = null;
+        state.player.dual = true;
+        state.player.score += 200; // Bonus for rescue
+        playCapture(); // Reuse capture sound for now
+      }
+    }
+    
+    // Remove if off screen
+    if (state.rescueShip && state.rescueShip.y > state.VIEW_H + 20) {
+      state.rescueShip = null;
+    }
   }
 
   // enemies
@@ -674,9 +723,6 @@ function updatePlaying(dt, state, keys) {
       // damage player, spawn explosion, and remove the enemy
       state.player.hitThisFrame = true;
       state.player.flash = 0.25;
-      state.player.lives--;
-      playHit();
-      boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
 
       // remove the enemy that collided
       const idx = state.enemies.indexOf(e);
@@ -685,19 +731,30 @@ function updatePlaying(dt, state, keys) {
         boom(state, e.x + e.w/2, e.y + e.h/2, e.w);
         state.enemies.splice(idx, 1);
       }
-
-      if (state.player.lives <= 0) {
-        // Game over - keep capturedShip if it exists (don't release captor)
-        state.player.alive = false;
-        state.gameOver = true;
-        // Clear beams but preserve capturedShip
-        state.beams.length = 0;
+      
+      // In dual mode, lose dual instead of life
+      if (state.player.dual) {
+        state.player.dual = false;
+        playHit();
+        boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
       } else {
-        // Player still has lives - respawn but DON'T release captor/capturedShip
-        // The captured ship should persist until the captor is destroyed
-        state.player.x = state.VIEW_W / 2 - 12;
-        state.player.y = state.VIEW_H - 28;
-        state.player.captureT = 0;
+        state.player.lives--;
+        playHit();
+        boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
+
+        if (state.player.lives <= 0) {
+          // Game over - keep capturedShip if it exists (don't release captor)
+          state.player.alive = false;
+          state.gameOver = true;
+          // Clear beams but preserve capturedShip
+          state.beams.length = 0;
+        } else {
+          // Player still has lives - respawn but DON'T release captor/capturedShip
+          // The captured ship should persist until the captor is destroyed
+          state.player.x = state.VIEW_W / 2 - 12;
+          state.player.y = state.VIEW_H - 28;
+          state.player.captureT = 0;
+        }
       }
 
       break;
@@ -722,8 +779,15 @@ function updatePlaying(dt, state, keys) {
           playExplosion();
           boom(state, e.x + e.w/2, e.y + e.h/2, e.w);
           
-          // If this enemy was the captor, release capture state
-          if (state.captorId === e.id) {
+          // If this enemy was the captor, drop rescue ship
+          if (state.captorId === e.id && state.capturedShip) {
+            state.rescueShip = {
+              x: e.x + e.w / 2,
+              y: e.y + e.h,
+              w: state.capturedShip.w,
+              h: state.capturedShip.h,
+              vy: CFG.rescueDropSpeed,
+            };
             releaseCaptor(state);
           }
           
@@ -746,20 +810,28 @@ function updatePlaying(dt, state, keys) {
 
         state.player.hitThisFrame = true;
         state.player.flash = 0.25;
-        state.player.lives--;
-        playHit();
-        boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
-
-        if (state.player.lives <= 0) {
-          // Game over - keep capturedShip if it exists
-          state.player.alive = false;
-          state.gameOver = true;
-          state.beams.length = 0;
+        
+        // In dual mode, lose dual instead of life
+        if (state.player.dual) {
+          state.player.dual = false;
+          playHit();
+          boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
         } else {
-          // Player still has lives - respawn but DON'T release captor/capturedShip
-          state.player.x = state.VIEW_W / 2 - 12;
-          state.player.y = state.VIEW_H - 28;
-          state.player.captureT = 0;
+          state.player.lives--;
+          playHit();
+          boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
+
+          if (state.player.lives <= 0) {
+            // Game over - keep capturedShip if it exists
+            state.player.alive = false;
+            state.gameOver = true;
+            state.beams.length = 0;
+          } else {
+            // Player still has lives - respawn but DON'T release captor/capturedShip
+            state.player.x = state.VIEW_W / 2 - 12;
+            state.player.y = state.VIEW_H - 28;
+            state.player.captureT = 0;
+          }
         }
         break;
       }

@@ -61,6 +61,11 @@ export const CFG = {
   beamDiveSpeed: 60,
   beamConeSpread: 120,
 
+  // rescue and dual fighter
+  rescueDropSpeed: 70,
+  rescueCatchRadius: 12,
+  dualShotSpacing: 8,
+
   // game progression
   wavesForVictory: 10,
 
