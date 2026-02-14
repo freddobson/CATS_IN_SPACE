@@ -77,6 +77,26 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
     drawEnemy(ctx, state, e);
   }
 
+  // beams (draw after enemies so they appear over ships)
+  for (const b of state.beams) {
+    const captor = state.enemies.find(en => en.id === b.enemyId);
+    if (!captor) continue;
+    const sx = captor.x + captor.w / 2;
+    const sy = captor.y + captor.h;
+    const tx = state.player.x + state.player.w / 2;
+    const ty = state.player.y + state.player.h / 2;
+
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = "#8ad2ff";
+    // draw simple rectangular beam from captor to player
+    const bw = CFG.beamWidth || 8;
+    const topY = Math.min(sy, ty);
+    const botY = Math.max(sy, ty);
+    ctx.fillRect(sx - bw/2, topY, bw, botY - topY);
+    ctx.restore();
+  }
+
   // player
   if (state.player.alive) {
     ctx.fillStyle = state.player.flash > 0 ? "#ffffff" : "#7CFF6B";

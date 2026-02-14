@@ -323,6 +323,18 @@ export function update(dt, state, keys) {
             state.ebullets.push({ x: e.x + e.w/2 - 1, y: e.y + e.h, w: 2, h: 6, vy: ENEMY_BULLET_SPEED });
           }
         }
+
+        // Boss beam attack (capture)
+        if (e.kind === 'boss' && Math.random() < (CFG.beamChance || 0) * dt * 60) {
+          state.beams.push({
+            id: Math.random().toString(36).slice(2),
+            enemyId: e.id,
+            x: e.x + e.w / 2,
+            y: e.y + e.h,
+            life: CFG.beamDuration,
+            active: true,
+          });
+        }
       }
     }
   }
@@ -374,6 +386,42 @@ export function update(dt, state, keys) {
   for (let i = state.beams.length - 1; i >= 0; i--) {
     const b = state.beams[i];
     b.life -= dt;
+
+    // find the enemy that fired this beam
+    const captor = state.enemies.find(en => en.id === b.enemyId);
+
+    // beam intersects player -> capture
+    if (!state.player.captured && state.player.alive && captor && b.active) {
+      // simple horizontal overlap check using beam width
+      const bx = captor.x + captor.w / 2 - (CFG.beamWidth/2);
+      const bw = CFG.beamWidth;
+      const py = state.player.y;
+      if (state.player.x + state.player.w > bx && state.player.x < bx + bw && state.player.y > captor.y) {
+        state.player.captured = true;
+        state.player.captureT = 0;
+        state.captorId = captor.id;
+        b.active = false; // beam has latched
+      }
+    }
+
+    // while captured, pull player toward lock Y
+    if (state.player.captured && state.captorId) {
+      // if captor no longer exists, release
+      const cap = state.enemies.find(en => en.id === state.captorId);
+      if (!cap) {
+        state.player.captured = false;
+        state.captorId = null;
+      } else {
+        // pull player up toward capture lock Y
+        const lockY = CFG.capturedLockY || CFG.capturedLockY;
+        const targetY = lockY;
+        if (state.player.y > targetY) {
+          state.player.y = Math.max(targetY, state.player.y - CFG.beamPullSpeed * dt);
+        }
+        state.player.captureT += dt;
+      }
+    }
+
     if (b.life <= 0) state.beams.splice(i, 1);
   }
 
