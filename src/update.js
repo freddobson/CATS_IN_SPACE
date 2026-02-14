@@ -481,21 +481,15 @@ function updatePlaying(dt, state, keys) {
         e.mode = 'formation';
         e.segIdx = e.path.length - 1;
         e.t = 0;
-        // if this return was from a beam, clear captor reservation now
+        // if this return was from a beam, just clear the flag
+        // DO NOT release the player - they stay captured until boss is killed
         if (e.returningFromBeam) {
           e.returningFromBeam = false;
-          // release captor reservation and release captured player
-          if (state.captorId === e.id) state.captorId = null;
-          if (state.player.captured) {
-            state.player.captured = false;
-            state.player.invulnerable = false;
-            state.player.captureT = 0;
-          }
+          // cleanup any fixed positions
+          delete e.beamPath;
+          delete e.fixedY;
+          delete e.fixedX;
         }
-        // cleanup any fixed positions
-        delete e.beamPath;
-        delete e.fixedY;
-        delete e.fixedX;
       } else {
         const p = bezier3(cur.p0, cur.p1, cur.p2, cur.p3, clamp(e.t, 0, 1));
         e.x = p.x - e.w/2; e.y = p.y - e.h/2;
@@ -778,23 +772,27 @@ function updatePlaying(dt, state, keys) {
       }
     }
 
-    // while captured, lock player to captor position
-    if (state.player.captured && state.captorId) {
-      const cap = state.enemies.find(en => en.id === state.captorId);
-      if (!cap) {
-        state.player.captured = false;
-        state.captorId = null;
-      } else {
-        state.player.x = Math.round(cap.x + cap.w / 2 - state.player.w / 2);
-        state.player.y = Math.round(cap.y - state.player.h - 2);
-        state.player.captureT += dt;
-      }
-    }
-
     // Safety check: if beam is full but phase is still extend (never captured), mark it ready for timeout
     if (!b.full && b.phase === 'extend' && b.len >= b.maxLen) {
       b.full = true;
       b.life = CFG.beamDuration || 3.0;
+    }
+  }
+
+  // while captured, lock player to captor position (moved outside beam loop)
+  // This ensures player follows captor even after beam expires
+  if (state.player.captured && state.captorId) {
+    const cap = state.enemies.find(en => en.id === state.captorId);
+    if (!cap) {
+      // Captor is gone, release the player
+      state.player.captured = false;
+      state.player.invulnerable = false;
+      state.captorId = null;
+    } else {
+      // Lock player position behind/above captor
+      state.player.x = Math.round(cap.x + cap.w / 2 - state.player.w / 2);
+      state.player.y = Math.round(cap.y - state.player.h - 2);
+      state.player.captureT += dt;
     }
   }
 
