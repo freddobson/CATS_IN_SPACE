@@ -69,6 +69,14 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
   ctx.fillStyle = "#ffffff";
   for (const s of state.stars) ctx.fillRect(s.x | 0, s.y | 0, s.r, s.r);
 
+  // Show/hide crawl based on game state
+  const crawlContainer = document.getElementById('crawl-container');
+  if (state.gameState === GAME_STATE.TITLE && crawlContainer) {
+    crawlContainer.style.display = 'block';
+  } else if (crawlContainer) {
+    crawlContainer.style.display = 'none';
+  }
+
   // Render based on game state
   switch (state.gameState) {
     case GAME_STATE.TITLE:

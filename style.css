@@ -6,3 +6,68 @@ html, body {
 canvas {
   display: block;
 }
+/* Star Wars crawl effect */
+#crawl-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 400px;
+  height: 600px;
+  margin-left: -200px;
+  margin-top: -300px;
+  perspective: 600px;
+  opacity: 0;
+  animation: fadein 1s ease-in forwards;
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.crawl {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 100%;
+  animation: crawl 60s ease-in-out forwards;
+  transform: rotateX(70deg) translateZ(0);
+}
+
+@keyframes crawl {
+  0% {
+    transform: rotateX(70deg) translateZ(0) translateY(100vh);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotateX(70deg) translateZ(0) translateY(-800px);
+    opacity: 0;
+  }
+}
+
+.crawl h1, .crawl p {
+  color: #ffd14a;
+  text-align: center;
+  font-family: monospace;
+  margin: 0;
+  padding: 10px;
+}
+
+.crawl h1 {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  letter-spacing: 5px;
+}
+
+.crawl p {
+  font-size: 20px;
+  line-height: 1.6;
+  letter-spacing: 2px;
+}
