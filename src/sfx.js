@@ -40,21 +40,74 @@ export function playShot() {
 }
 
 export function playExplosion() {
-  // quick descending blips
-  playTone(440, 'sawtooth', 0.18, 0.16);
-  setTimeout(() => playTone(220, 'sawtooth', 0.18, 0.12), 60);
+  // Enemy explosion - deep boom with multiple frequencies
+  const ctx = ensureCtx();
+  const now = ctx.currentTime;
+  
+  // Deep bass boom
+  const o1 = ctx.createOscillator();
+  const g1 = ctx.createGain();
+  o1.type = 'sine';
+  o1.frequency.setValueAtTime(200, now);
+  o1.frequency.exponentialRampToValueAtTime(80, now + 0.25);
+  g1.gain.setValueAtTime(0.25, now);
+  g1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+  o1.connect(g1);
+  g1.connect(ctx.destination);
+  o1.start(now);
+  o1.stop(now + 0.27);
+  
+  // Mid-range crackle
+  const o2 = ctx.createOscillator();
+  const g2 = ctx.createGain();
+  o2.type = 'sawtooth';
+  o2.frequency.setValueAtTime(450, now);
+  o2.frequency.exponentialRampToValueAtTime(150, now + 0.15);
+  g2.gain.setValueAtTime(0.15, now);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+  o2.connect(g2);
+  g2.connect(ctx.destination);
+  o2.start(now);
+  o2.stop(now + 0.17);
 }
 
 export function playHit() {
-  // Player taking damage
-  playTone(180, 'sawtooth', 0.25, 0.2);
+  // Player taking damage - angry growl
+  const ctx = ensureCtx();
+  const now = ctx.currentTime;
+  
+  // Growling sawtooth
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = 'sawtooth';
+  o.frequency.setValueAtTime(220, now);
+  o.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+  g.gain.setValueAtTime(0.22, now);
+  g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+  o.connect(g);
+  g.connect(ctx.destination);
+  o.start(now);
+  o.stop(now + 0.32);
 }
 
 export function playCapture() {
-  // Ascending alarm when captured
+  // Capture/pickup sound - ascending beeps (cat meow/chomp)
   playTone(300, 'triangle', 0.1, 0.15);
   setTimeout(() => playTone(450, 'triangle', 0.1, 0.15), 100);
   setTimeout(() => playTone(600, 'triangle', 0.15, 0.15), 200);
+}
+
+export function playLevelComplete() {
+  // Victory fanfare - ascending major chord
+  const ctx = ensureCtx();
+  const now = ctx.currentTime;
+  
+  // C4 (262 Hz)
+  playTone(262, 'sine', 0.3, 0.2);
+  // E4 (330 Hz)
+  setTimeout(() => playTone(330, 'sine', 0.3, 0.2), 100);
+  // G4 (392 Hz)
+  setTimeout(() => playTone(392, 'sine', 0.5, 0.25), 200);
 }
 
 export function playBeamStart() {

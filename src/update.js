@@ -1,7 +1,7 @@
 import { CFG, GAME_STATE, PLAYER_SPEED, BULLET_SPEED, ENEMY_BULLET_SPEED, FIRE_COOLDOWN, ENEMY_FIRE_CHANCE, HIT_FLASH, STAR_COUNT } from './cfg.js';
 import { bezier3, buildWavePaths, makeDivePath } from './paths.js';
 import { makeEnemy, formationSlot } from './entities.js';
-import { playShot, playExplosion, playHit, playCapture, playBeamStart, unlockAudio } from './sfx.js';
+import { playShot, playExplosion, playHit, playCapture, playBeamStart, playLevelComplete, unlockAudio } from './sfx.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1082,6 +1082,7 @@ function updatePlaying(dt, state, keys) {
     // Check for victory condition
     if (state.wave > CFG.wavesForVictory) {
       state.gameState = GAME_STATE.VICTORY;
+      playLevelComplete();
     } else {
       spawnWave(state);
     }
