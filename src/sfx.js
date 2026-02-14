@@ -23,7 +23,20 @@ function playTone(freq, type = 'sine', duration = 0.12, gain = 0.15) {
 }
 
 export function playShot() {
-  playTone(880, 'square', 0.08, 0.12);
+  // Laser "pyoom" - quick descending pitch
+  const ctx = ensureCtx();
+  const now = ctx.currentTime;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(1200, now);
+  o.frequency.exponentialRampToValueAtTime(400, now + 0.12);
+  g.gain.setValueAtTime(0.18, now);
+  g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+  o.connect(g);
+  g.connect(ctx.destination);
+  o.start(now);
+  o.stop(now + 0.13);
 }
 
 export function playExplosion() {

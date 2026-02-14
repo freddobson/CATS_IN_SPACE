@@ -457,7 +457,7 @@ function updatePlaying(dt, state, keys) {
     state.player.x = clamp(state.player.x, 6, state.VIEW_W - state.player.w - 6);
 
     if (fire && state.player.fireCd <= 0) {
-      state.bullets.push({ x: state.player.x + state.player.w/2 - 1, y: state.player.y - 6, w: 2, h: 6, vy: -BULLET_SPEED });
+      state.bullets.push({ x: state.player.x + state.player.w/2 - 1.5, y: state.player.y - 6, w: 3, h: 18, vy: -BULLET_SPEED });
       state.player.fireCd = FIRE_COOLDOWN;
       playShot();
     }

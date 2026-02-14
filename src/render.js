@@ -126,9 +126,17 @@ function renderTitle(state, ctx, VIEW_W, VIEW_H) {
 }
 
 function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
-  // bullets
-  ctx.fillStyle = "#7CFF6B";
-  for (const b of state.bullets) ctx.fillRect(b.x | 0, b.y | 0, b.w, b.h);
+  // player laser beams
+  ctx.fillStyle = "#FF3333";
+  for (const b of state.bullets) {
+    // Draw laser beam with glow effect
+    ctx.globalAlpha = 0.6;
+    ctx.fillRect((b.x - 1) | 0, b.y | 0, b.w + 2, b.h);
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = "#FF6666";
+    ctx.fillRect(b.x | 0, b.y | 0, b.w, b.h);
+    ctx.fillStyle = "#FF3333";
+  }
 
   ctx.fillStyle = "#ff5a7a";
   for (const b of state.ebullets) ctx.fillRect(b.x | 0, b.y | 0, b.w, b.h);
