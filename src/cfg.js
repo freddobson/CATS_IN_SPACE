@@ -22,6 +22,24 @@ export const CFG = {
 
   // effects
   hitFlash: 0.08,
+  // dive attacks
+  diveEvery: 2.0,
+  diveChance: 0.7,
+  diveMaxActive: 2,
+  diveSegDuration: 0.42,
+  diveLead: 0.25,
+  diveEntryDx: 48,
+  diveHookDx: 70,
+  diveY1: 60,
+  diveY2: 140,
+  diveExitY: 330,
+
+  // beam (boss capture)
+  beamChance: 0.12,
+  beamDuration: 1.2,
+  beamWidth: 10,
+  beamPullSpeed: 90,
+  capturedLockY: 120,
 };
 
 // Export some convenience aliases (optional)

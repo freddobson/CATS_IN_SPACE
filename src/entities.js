@@ -9,6 +9,7 @@ export function formationSlot(state, col, row) {
 export function makeEnemy({ kind, slotCol, slotRow, slotX, slotY, pathSegs, spawnDelay }) {
   const isBoss = kind === 'boss';
   return {
+    id: (Math.random().toString(36).slice(2)),
     kind,
     x: slotX, y: slotY,
     w: isBoss ? 14 : 12,

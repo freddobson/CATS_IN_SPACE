@@ -1,5 +1,5 @@
 import { CFG, PLAYER_SPEED, BULLET_SPEED, ENEMY_BULLET_SPEED, FIRE_COOLDOWN, ENEMY_FIRE_CHANCE, HIT_FLASH, STAR_COUNT } from './cfg.js';
-import { bezier3, buildWavePaths } from './paths.js';
+import { bezier3, buildWavePaths, makeDivePath } from './paths.js';
 import { makeEnemy, formationSlot } from './entities.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -22,6 +22,8 @@ export function createState(VIEW_W, VIEW_H) {
     score: 0,
     fireCd: 0,
     flash: 0,
+    captured: false,
+    captureT: 0,
   };
 
   const formation = {
@@ -46,8 +48,25 @@ export function createState(VIEW_W, VIEW_H) {
     enemies: [],
     explosions: [],
     formation,
+    diveTimer: CFG.diveEvery,
+    captorId: null,
+    beams: [],
     gameOver: false,
   };
+}
+
+function countDivers(state) {
+  let n = 0;
+  for (const e of state.enemies) if (e.mode === 'dive' || e.mode === 'return') n++;
+  return n;
+}
+
+function pickDiver(state) {
+  const inForm = state.enemies.filter(e => e.mode === 'formation');
+  if (!inForm.length) return null;
+  const bees = inForm.filter(e => e.kind !== 'boss');
+  const pool = bees.length ? bees : inForm;
+  return pool[(Math.random() * pool.length) | 0];
 }
 
 
@@ -133,6 +152,27 @@ export function update(dt, state, keys) {
   state.formation.swayT += dt * state.formation.swaySpeed;
   const sway = Math.sin(state.formation.swayT * Math.PI * 2) * state.formation.swayAmp;
 
+  // dive manager (launch divers)
+  if (!state.gameOver && state.player.alive) {
+    state.diveTimer -= dt;
+    if (state.diveTimer <= 0) {
+      state.diveTimer = CFG.diveEvery;
+      if (Math.random() < CFG.diveChance) {
+        const maxActive = CFG.diveMaxActive || 2;
+        if (countDivers(state) < maxActive) {
+          const e = pickDiver(state);
+          if (e) {
+            const paths = makeDivePath(e);
+            e.mode = 'dive';
+            e.path = paths.dive;
+            e._returnPath = paths.ret;
+            e.segIdx = 0; e.t = 0; e.segDur = CFG.diveSegDuration;
+          }
+        }
+      }
+    }
+  }
+
   // player
   if (!state.gameOver && state.player.alive) {
     const left  = keys.has('arrowleft') || keys.has('a');
@@ -195,6 +235,43 @@ export function update(dt, state, keys) {
       e.y = p.y;
     }
 
+    // Dive handling (sits before formation so it isn't overwritten)
+    if (e.mode === 'dive') {
+      const segNow = e.path[Math.min(e.segIdx, e.path.length - 1)];
+      e.t += dt / e.segDur;
+      if (e.t >= 1) {
+        e.t = 0;
+        e.segIdx++;
+        if (e.segIdx >= e.path.length) {
+          // finished dive, switch to return path
+          e.mode = 'return';
+          e.path = e._returnPath;
+          e.segIdx = 0;
+          e.t = 0;
+          e.segDur = CFG.diveSegDuration;
+        }
+      }
+      const cur = e.path[Math.min(e.segIdx, e.path.length - 1)];
+      const p = bezier3(cur.p0, cur.p1, cur.p2, cur.p3, clamp(e.t, 0, 1));
+      e.x = p.x - e.w/2; e.y = p.y - e.h/2;
+      continue; // skip formation and other logic while diving
+    }
+
+    if (e.mode === 'return') {
+      const cur = e.path[Math.min(e.segIdx, e.path.length - 1)];
+      e.t += dt / e.segDur;
+      if (e.t >= 1) {
+        e.mode = 'formation';
+        e.segIdx = e.path.length - 1;
+        e.t = 0;
+        delete e._returnPath;
+      } else {
+        const p = bezier3(cur.p0, cur.p1, cur.p2, cur.p3, clamp(e.t, 0, 1));
+        e.x = p.x - e.w/2; e.y = p.y - e.h/2;
+      }
+      continue;
+    }
+
     if (e.mode === 'formation') {
       const base = formationSlot(state, e.slotCol, e.slotRow);
       e.slotX = base.x;
@@ -255,6 +332,13 @@ export function update(dt, state, keys) {
         break;
       }
     }
+  }
+
+  // beams aging & simple capture handling
+  for (let i = state.beams.length - 1; i >= 0; i--) {
+    const b = state.beams[i];
+    b.life -= dt;
+    if (b.life <= 0) state.beams.splice(i, 1);
   }
 
   // explosions

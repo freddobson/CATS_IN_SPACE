@@ -2,6 +2,9 @@ import { CFG } from './cfg.js';
 
 const VIEW_W = CFG.viewW || 224;
 
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
 // Cubic Bezier (0..1)
 export function bezier3(p0, p1, p2, p3, t) {
   const u = 1 - t;
@@ -60,4 +63,48 @@ export function buildWavePaths() {
   };
 
   return { leftEntry, rightEntry, loopThenSlot };
+}
+
+// Produce a two-segment dive and a single-segment return.
+export function makeDivePath(e) {
+  // start at enemy center
+  const sx = e.x + e.w / 2;
+  const sy = e.y + e.h / 2;
+
+  // target near player with slight lead
+  const player = (typeof window !== 'undefined' && window._GAME_PLAYER) ? window._GAME_PLAYER : null;
+  const px = player ? player.x + player.w / 2 : VIEW_W / 2;
+  const lead = (px - sx) * CFG.diveLead;                 // 0..1
+  const tx = clamp(px + lead, 12, VIEW_W - 12);
+
+  const entryDx = CFG.diveEntryDx;
+  const hookDx  = CFG.diveHookDx;
+  const y1 = sy + CFG.diveY1;
+  const y2 = sy + CFG.diveY2;
+  const exitY = CFG.diveExitY;
+
+  const dir = (sx < VIEW_W / 2) ? 1 : -1;
+
+  const a0 = { x: sx,                 y: sy };
+  const a1 = { x: sx + dir*entryDx,   y: sy + 10 };
+  const a2 = { x: sx + dir*entryDx,   y: y1 };
+  const a3 = { x: sx + dir*(entryDx*0.5), y: y1 + 20 };
+
+  const b0 = a3;
+  const b1 = { x: b0.x - dir*hookDx,  y: y2 - 20 };
+  const b2 = { x: tx + rand(-12, 12), y: y2 + 20 };
+  const b3 = { x: tx,                y: exitY };
+
+  const rx = e.slotX;
+  const ry = e.slotY;
+
+  const r0 = b3;
+  const r1 = { x: clamp(tx + rand(-70, 70), 0, VIEW_W), y: exitY - 90 };
+  const r2 = { x: clamp(rx + rand(-70, 70), 0, VIEW_W), y: ry + 90 };
+  const r3 = { x: rx, y: ry };
+
+  return {
+    dive: [{ p0: a0, p1: a1, p2: a2, p3: a3 }, { p0: b0, p1: b1, p2: b2, p3: b3 }],
+    ret:  [{ p0: r0, p1: r1, p2: r2, p3: r3 }],
+  };
 }
