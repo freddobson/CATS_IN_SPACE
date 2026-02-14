@@ -31,7 +31,7 @@ export const CFG = {
   enemyFireRate: 0.0105,
   
   // debug
-  enemiesDontFire: true, // Set to true to disable enemy shooting (for testing)
+  enemiesDontFire: false, // Set to true to disable enemy shooting (for testing)
 
   // effects
   hitFlash: 0.08,
