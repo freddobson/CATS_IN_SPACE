@@ -243,15 +243,24 @@ export function update(dt, state, keys) {
 
     // collision: enemy -> player (dive-bomb or ram)
     if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
-      // apply same effect as enemy bullet
+      // damage player, spawn explosion, and remove the enemy
       state.player.flash = 0.25;
       state.player.lives--;
       boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
+
+      // remove the enemy that collided
+      const idx = state.enemies.indexOf(e);
+      if (idx !== -1) {
+        // bigger explosion at enemy position
+        boom(state, e.x + e.w/2, e.y + e.h/2, e.kind === 'boss' ? 14 : 10);
+        state.enemies.splice(idx, 1);
+      }
+
       if (state.player.lives <= 0) {
         state.player.alive = false;
         state.gameOver = true;
       }
-      // don't remove enemy; one collision per frame is enough
+
       break;
     }
 
