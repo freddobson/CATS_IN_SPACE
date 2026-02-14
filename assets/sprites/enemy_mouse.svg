@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Toy Mouse - small enemy -->
+  <!-- Ears -->
+  <circle cx="8" cy="8" r="3" fill="#C0C0C0" />
+  <circle cx="16" cy="8" r="3" fill="#C0C0C0" />
+  <circle cx="8" cy="8" r="2" fill="#ff89b5" />
+  <circle cx="16" cy="8" r="2" fill="#ff89b5" />
+  <!-- Body -->
+  <ellipse cx="12" cy="13" rx="6" ry="5" fill="#D3D3D3" />
+  <!-- Eyes -->
+  <circle cx="10" cy="12" r="1.5" fill="#000" />
+  <circle cx="14" cy="12" r="1.5" fill="#000" />
+  <!-- Nose -->
+  <circle cx="12" cy="14" r="1" fill="#ff89b5" />
+  <!-- Tail -->
+  <path d="M 18 15 Q 22 13 22 18" stroke="#D3D3D3" stroke-width="2" fill="none" />
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Cat Treat - kibble piece -->
+  <path d="M 4 6 L 8 4 L 12 6 L 10 10 L 6 10 Z" fill="#D2691E" />
+  <path d="M 4 6 L 6 10 L 7 8 L 5 6 Z" fill="#8B4513" opacity="0.6" />
+  <path d="M 8 4 L 9 6 L 8 8 Z" fill="#F4A460" opacity="0.7" />
+  <!-- Shine -->
+  <circle cx="9" cy="6" r="1" fill="#FFF" opacity="0.5" />
+</svg>

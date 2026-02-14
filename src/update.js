@@ -154,15 +154,118 @@ export function boom(state, x, y, n = 10) {
 export function spawnWave(state) {
   const paths = buildWavePaths();
   const VIEW_W = state.VIEW_W;
+  const waveNum = state.wave;
 
-  const plan = [
-    { col: 3, row: 0, kind: 'bee',  path: 'left'  },
-    { col: 6, row: 0, kind: 'bee',  path: 'right' },
-    { col: 2, row: 1, kind: 'bee',  path: 'loopL' },
-    { col: 7, row: 1, kind: 'bee',  path: 'loopR' },
-    { col: 4, row: 2, kind: 'boss', path: 'loopL' },
-    { col: 5, row: 2, kind: 'boss', path: 'loopR' },
+  // Different wave patterns showcasing enemy variety
+  const wavePlans = [
+    // Wave 1: Toy Mice invasion
+    [
+      { col: 2, row: 0, kind: 'mouse',  path: 'left'  },
+      { col: 4, row: 0, kind: 'mouse',  path: 'left'  },
+      { col: 5, row: 0, kind: 'mouse',  path: 'right' },
+      { col: 7, row: 0, kind: 'mouse',  path: 'right' },
+      { col: 3, row: 1, kind: 'feather', path: 'loopL' },
+      { col: 6, row: 1, kind: 'feather', path: 'loopR' },
+    ],
+    
+    // Wave 2: Feather toys
+    [
+      { col: 1, row: 0, kind: 'feather', path: 'left'  },
+      { col: 8, row: 0, kind: 'feather', path: 'right' },
+      { col: 3, row: 1, kind: 'feather', path: 'loopL' },
+      { col: 6, row: 1, kind: 'feather', path: 'loopR' },
+      { col: 4, row: 2, kind: 'mouse',   path: 'loopL' },
+      { col: 5, row: 2, kind: 'mouse',   path: 'loopR' },
+    ],
+    
+    // Wave 3: Balls of yarn appear!
+    [
+      { col: 2, row: 0, kind: 'mouse',  path: 'left'  },
+      { col: 7, row: 0, kind: 'mouse',  path: 'right' },
+      { col: 3, row: 1, kind: 'yarn',   path: 'loopL' },
+      { col: 6, row: 1, kind: 'yarn',   path: 'loopR' },
+      { col: 4, row: 2, kind: 'feather', path: 'loopL' },
+      { col: 5, row: 2, kind: 'feather', path: 'loopR' },
+    ],
+    
+    // Wave 4: Mixed formation with catnip
+    [
+      { col: 1, row: 0, kind: 'mouse',   path: 'left'  },
+      { col: 8, row: 0, kind: 'mouse',   path: 'right' },
+      { col: 2, row: 1, kind: 'feather', path: 'loopL' },
+      { col: 7, row: 1, kind: 'feather', path: 'loopR' },
+      { col: 4, row: 2, kind: 'catnip',  path: 'loopL' },
+      { col: 5, row: 2, kind: 'catnip',  path: 'loopR' },
+    ],
+    
+    // Wave 5: First LASER POINTER boss!
+    [
+      { col: 2, row: 0, kind: 'feather', path: 'left'  },
+      { col: 7, row: 0, kind: 'feather', path: 'right' },
+      { col: 3, row: 1, kind: 'yarn',    path: 'loopL' },
+      { col: 6, row: 1, kind: 'yarn',    path: 'loopR' },
+      { col: 4, row: 2, kind: 'laser',   path: 'loopL' },
+      { col: 5, row: 2, kind: 'mouse',   path: 'loopR' },
+    ],
+    
+    // Wave 6: Yarn and catnip assault
+    [
+      { col: 1, row: 0, kind: 'yarn',    path: 'left'  },
+      { col: 8, row: 0, kind: 'yarn',    path: 'right' },
+      { col: 2, row: 1, kind: 'catnip',  path: 'loopL' },
+      { col: 7, row: 1, kind: 'catnip',  path: 'loopR' },
+      { col: 4, row: 2, kind: 'feather', path: 'loopL' },
+      { col: 5, row: 2, kind: 'feather', path: 'loopR' },
+    ],
+    
+    // Wave 7: Double laser pointer danger!
+    [
+      { col: 2, row: 0, kind: 'mouse',   path: 'left'  },
+      { col: 7, row: 0, kind: 'mouse',   path: 'right' },
+      { col: 3, row: 1, kind: 'catnip',  path: 'loopL' },
+      { col: 6, row: 1, kind: 'catnip',  path: 'loopR' },
+      { col: 3, row: 2, kind: 'laser',   path: 'loopL' },
+      { col: 6, row: 2, kind: 'laser',   path: 'loopR' },
+    ],
+    
+    // Wave 8: All enemy types mixed
+    [
+      { col: 1, row: 0, kind: 'mouse',   path: 'left'  },
+      { col: 8, row: 0, kind: 'feather', path: 'right' },
+      { col: 2, row: 1, kind: 'yarn',    path: 'loopL' },
+      { col: 7, row: 1, kind: 'catnip',  path: 'loopR' },
+      { col: 4, row: 2, kind: 'laser',   path: 'loopL' },
+      { col: 5, row: 2, kind: 'yarn',    path: 'loopR' },
+    ],
+    
+    // Wave 9: Catnip madness
+    [
+      { col: 2, row: 0, kind: 'catnip',  path: 'left'  },
+      { col: 7, row: 0, kind: 'catnip',  path: 'right' },
+      { col: 1, row: 1, kind: 'yarn',    path: 'loopL' },
+      { col: 8, row: 1, kind: 'yarn',    path: 'loopR' },
+      { col: 3, row: 2, kind: 'laser',   path: 'loopL' },
+      { col: 6, row: 2, kind: 'laser',   path: 'loopR' },
+    ],
+    
+    // Wave 10: FINAL ASSAULT - Triple laser pointer boss + support
+    [
+      { col: 0, row: 0, kind: 'feather', path: 'left'  },
+      { col: 9, row: 0, kind: 'feather', path: 'right' },
+      { col: 2, row: 1, kind: 'catnip',  path: 'loopL' },
+      { col: 7, row: 1, kind: 'catnip',  path: 'loopR' },
+      { col: 3, row: 2, kind: 'laser',   path: 'loopL' },
+      { col: 4, row: 2, kind: 'laser',   path: 'loopL' },
+      { col: 5, row: 2, kind: 'laser',   path: 'loopR' },
+    ],
   ];
+
+  // Select wave pattern, cycling through patterns or using last one
+  // Ensure waveNum is at least 1, and index is always valid (0 to wavePlans.length - 1)
+  const waveIndex = Math.max(0, Math.min((waveNum || 1) - 1, wavePlans.length - 1));
+  const plan = wavePlans[waveIndex];
+  
+  console.log(`Spawning wave ${waveNum}, pattern index ${waveIndex}:`, plan.map(e => e.kind));
 
   let delay = 0;
   for (const item of plan) {
@@ -513,7 +616,7 @@ function updatePlaying(dt, state, keys) {
         }
 
         // Boss beam attack (capture) - only if no current captor
-        if (e.kind === 'boss' && !state.captorId && Math.random() < (CFG.beamChance || 0) * dt * 60) {
+        if (e.canBeam && !state.captorId && Math.random() < (CFG.beamChance || 0) * dt * 60) {
           // reserve this captor immediately to avoid race with other bosses
           const beamId = Math.random().toString(36).slice(2);
           state.captorId = e.id;
@@ -572,7 +675,7 @@ function updatePlaying(dt, state, keys) {
       const idx = state.enemies.indexOf(e);
       if (idx !== -1) {
         // bigger explosion at enemy position
-        boom(state, e.x + e.w/2, e.y + e.h/2, e.kind === 'boss' ? 14 : 10);
+        boom(state, e.x + e.w/2, e.y + e.h/2, e.w);
         state.enemies.splice(idx, 1);
       }
 
@@ -609,7 +712,7 @@ function updatePlaying(dt, state, keys) {
         if (e.hp <= 0) {
           state.player.score += e.score;
           playExplosion();
-          boom(state, e.x + e.w/2, e.y + e.h/2, e.kind === 'boss' ? 14 : 10);
+          boom(state, e.x + e.w/2, e.y + e.h/2, e.w);
           
           // If this enemy was the captor, release capture state
           if (state.captorId === e.id) {

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Catnip Pouch - special enemy -->
+  <!-- Pouch -->
+  <path d="M 8 8 Q 8 18 12 20 Q 16 18 16 8 L 15 6 L 9 6 Z" fill="#90EE90" />
+  <!-- Tie at top -->
+  <rect x="10" y="5" width="4" height="3" rx="1" fill="#228B22" />
+  <!-- String -->
+  <line x1="10" y1="6" x2="8" y2="4" stroke="#228B22" stroke-width="1" />
+  <line x1="14" y1="6" x2="16" y2="4" stroke="#228B22" stroke-width="1" />
+  <!-- Label/text effect -->
+  <rect x="10" y="11" width="4" height="6" rx="0.5" fill="#FFF" opacity="0.3" />
+  <!-- Leaves pattern -->
+  <path d="M 10 13 L 12 12 L 14 13" stroke="#228B22" stroke-width="0.5" fill="none" />
+  <path d="M 10 15 L 12 14 L 14 15" stroke="#228B22" stroke-width="0.5" fill="none" />
+</svg>

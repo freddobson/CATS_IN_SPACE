@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Gizmo - Black cat head spaceship with yellow eyes -->
+  <!-- Ears -->
+  <path d="M 4 6 L 2 2 L 8 6 Z" fill="#1a1a1a" />
+  <path d="M 20 6 L 22 2 L 16 6 Z" fill="#1a1a1a" />
+  <!-- Head -->
+  <ellipse cx="12" cy="12" rx="8" ry="9" fill="#1a1a1a" />
+  <!-- Eyes - yellow glow -->
+  <ellipse cx="9" cy="11" rx="2.5" ry="3" fill="#FFD700" />
+  <ellipse cx="15" cy="11" rx="2.5" ry="3" fill="#FFD700" />
+  <!-- Pupils -->
+  <ellipse cx="9" cy="11" rx="1" ry="2" fill="#000" />
+  <ellipse cx="15" cy="11" rx="1" ry="2" fill="#000" />
+  <!-- Nose -->
+  <path d="M 12 14 L 10 16 L 12 15 L 14 16 Z" fill="#ff89b5" />
+  <!-- Thruster glow at bottom -->
+  <ellipse cx="12" cy="21" rx="4" ry="2" fill="#7CFF6B" opacity="0.6" />
+</svg>

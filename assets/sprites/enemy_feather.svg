@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Feather Toy - medium enemy -->
+  <!-- Stick -->
+  <rect x="10.5" y="16" width="3" height="6" rx="1" fill="#8B4513" />
+  <!-- Feathers -->
+  <ellipse cx="8" cy="8" rx="3" ry="6" fill="#FF6B9D" opacity="0.8" transform="rotate(-20 8 8)" />
+  <ellipse cx="12" cy="6" rx="3" ry="7" fill="#9D6BFF" opacity="0.8" />
+  <ellipse cx="16" cy="8" rx="3" ry="6" fill="#6BFFD5" opacity="0.8" transform="rotate(20 16 8)" />
+  <!-- Highlights -->
+  <ellipse cx="12" cy="5" rx="1.5" ry="3" fill="#FFF" opacity="0.4" />
+</svg>

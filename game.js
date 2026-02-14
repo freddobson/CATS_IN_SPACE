@@ -24,6 +24,7 @@ async function start() {
   // load assets and attach to state
   try {
     state.assets = await loadAssets();
+    console.log('Assets loaded:', Object.keys(state.assets));
   } catch (e) {
     // if assets fail to load, continue without them
     console.warn('asset load failed', e);

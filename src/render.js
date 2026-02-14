@@ -18,8 +18,9 @@ export function beginView(ctx, VIEW_W, VIEW_H) {
 export function endView(ctx) { ctx.restore(); }
 
 function drawShip(ctx, state, x, y) {
-  // If a player image is loaded, draw it; otherwise fallback to blocks
-  const img = state.assets && state.assets.player;
+  // Try to load Gizmo sprite first, fallback to player.svg, then blocks
+  const assets = state.assets || {};
+  const img = assets.gizmo || assets.player;
   if (img) {
     ctx.drawImage(img, Math.floor(x), Math.floor(y), state.player.w, state.player.h);
     return;
@@ -35,20 +36,23 @@ function drawShip(ctx, state, x, y) {
 function drawEnemy(ctx, state, e) {
   const x = Math.floor(e.x), y = Math.floor(e.y);
   const assets = state.assets || {};
-  if (e.kind === 'boss') {
-    if (assets.boss) {
-      ctx.drawImage(assets.boss, x, y, e.w, e.h);
-      return;
-    }
+  
+  // Try to load sprite based on enemy kind (mouse, feather, yarn, laser, catnip, etc.)
+  const sprite = assets[e.kind];
+  if (sprite) {
+    ctx.drawImage(sprite, x, y, e.w, e.h);
+    return;
+  }
+  
+  // Fallback rendering for missing sprites
+  if (e.canBeam) {
+    // Boss-type enemies (larger)
     ctx.fillRect(x + 2, y + 1, 10, 2);
     ctx.fillRect(x + 1, y + 3, 12, 3);
     ctx.fillRect(x + 3, y + 6, 8, 3);
     ctx.fillRect(x + 5, y + 9, 4, 2);
   } else {
-    if (assets.bee) {
-      ctx.drawImage(assets.bee, x, y, e.w, e.h);
-      return;
-    }
+    // Regular enemies (smaller)
     ctx.fillRect(x + 3, y + 1, 6, 2);
     ctx.fillRect(x + 2, y + 3, 8, 3);
     ctx.fillRect(x + 4, y + 6, 4, 3);

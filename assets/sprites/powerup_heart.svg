@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Heart - extra life powerup -->
+  <path d="M 8 14 L 3 9 Q 1 7 3 5 Q 5 3 8 6 Q 11 3 13 5 Q 15 7 13 9 Z" fill="#FF1493" />
+  <path d="M 8 6 Q 6 4 5 5 Q 4 6 5 7 L 8 10" fill="#FF69B4" opacity="0.6" />
+  <!-- Shine -->
+  <circle cx="6" cy="6" r="1" fill="#FFF" opacity="0.7" />
+</svg>

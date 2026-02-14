@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Ball of Yarn - medium enemy -->
+  <!-- Main ball -->
+  <circle cx="12" cy="12" r="7" fill="#FF6B9D" />
+  <!-- Yarn strands -->
+  <path d="M 6 12 Q 9 8 12 12 Q 15 16 18 12" stroke="#FF89B5" stroke-width="1.5" fill="none" />
+  <path d="M 12 6 Q 8 9 12 12 Q 16 15 12 18" stroke="#FF89B5" stroke-width="1.5" fill="none" />
+  <path d="M 8 8 Q 12 10 16 8" stroke="#FFB5D0" stroke-width="1" fill="none" />
+  <path d="M 8 16 Q 12 14 16 16" stroke="#FFB5D0" stroke-width="1" fill="none" />
+  <!-- Loose strand -->
+  <path d="M 18 10 L 21 8 L 22 9" stroke="#FF6B9D" stroke-width="2" fill="none" stroke-linecap="round" />
+</svg>
