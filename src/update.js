@@ -1,4 +1,4 @@
-import { CFG, PLAYER_SPEED, BULLET_SPEED, ENEMY_BULLET_SPEED, FIRE_COOLDOWN, ENEMY_FIRE_CHANCE, HIT_FLASH, STAR_COUNT } from './cfg.js';
+import { CFG, GAME_STATE, PLAYER_SPEED, BULLET_SPEED, ENEMY_BULLET_SPEED, FIRE_COOLDOWN, ENEMY_FIRE_CHANCE, HIT_FLASH, STAR_COUNT } from './cfg.js';
 import { bezier3, buildWavePaths, makeDivePath } from './paths.js';
 import { makeEnemy, formationSlot } from './entities.js';
 
@@ -56,6 +56,8 @@ export function createState(VIEW_W, VIEW_H) {
   return {
     VIEW_W,
     VIEW_H,
+    gameState: GAME_STATE.TITLE,
+    wave: 0,
     stars,
     player,
     bullets: [],
@@ -209,6 +211,8 @@ export function resetGame(state) {
   state.beamReserved = {};
 
   state.gameOver = false;
+  state.gameState = GAME_STATE.PLAYING;
+  state.wave = 1;
 
   spawnWave(state);
 }
@@ -232,13 +236,75 @@ function releaseAllBeams(state) {
 }
 
 export function update(dt, state, keys) {
-  // restart
-  if (state.gameOver && keys.has('enter')) resetGame(state);
-
-  // stars
+  // Always update stars (for background ambience in all states)
   for (const s of state.stars) {
     s.y += s.v * dt;
     if (s.y > state.VIEW_H) { s.y = 0; s.x = rand(0, state.VIEW_W); }
+  }
+
+  // Route to appropriate update based on game state
+  switch (state.gameState) {
+    case GAME_STATE.TITLE:
+      updateTitle(dt, state, keys);
+      break;
+    case GAME_STATE.PLAYING:
+      updatePlaying(dt, state, keys);
+      break;
+    case GAME_STATE.PAUSED:
+      updatePaused(dt, state, keys);
+      break;
+    case GAME_STATE.GAME_OVER:
+      updateGameOver(dt, state, keys);
+      break;
+    case GAME_STATE.VICTORY:
+      updateVictory(dt, state, keys);
+      break;
+  }
+}
+
+function updateTitle(dt, state, keys) {
+  // Press ENTER to start
+  if (keys.has('enter')) {
+    resetGame(state);
+  }
+}
+
+function updatePaused(dt, state, keys) {
+  // Press ESC or P to resume
+  if (keys.has('escape') || keys.has('p')) {
+    keys.delete('escape');
+    keys.delete('p');
+    state.gameState = GAME_STATE.PLAYING;
+  }
+}
+
+function updateGameOver(dt, state, keys) {
+  // Press ENTER to restart
+  if (keys.has('enter')) {
+    resetGame(state);
+  }
+}
+
+function updateVictory(dt, state, keys) {
+  // Press ENTER to restart
+  if (keys.has('enter')) {
+    resetGame(state);
+  }
+}
+
+function updatePlaying(dt, state, keys) {
+  // Check for pause
+  if (keys.has('escape') || keys.has('p')) {
+    keys.delete('escape');
+    keys.delete('p');
+    state.gameState = GAME_STATE.PAUSED;
+    return;
+  }
+
+  // Check for game over
+  if (state.gameOver) {
+    state.gameState = GAME_STATE.GAME_OVER;
+    return;
   }
 
   // formation sway
@@ -708,7 +774,15 @@ export function update(dt, state, keys) {
   }
 
   // wave refill if empty
-  if (!state.gameOver && state.enemies.length === 0) spawnWave(state);
+  if (!state.gameOver && state.enemies.length === 0) {
+    state.wave++;
+    // Check for victory condition
+    if (state.wave > CFG.wavesForVictory) {
+      state.gameState = GAME_STATE.VICTORY;
+    } else {
+      spawnWave(state);
+    }
+  }
 }
 
 function aabb(a, b) {

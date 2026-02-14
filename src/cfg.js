@@ -1,4 +1,14 @@
 // Central configuration for Gizmos Revenge
+
+// Game States
+export const GAME_STATE = {
+  TITLE: 'TITLE',
+  PLAYING: 'PLAYING',
+  PAUSED: 'PAUSED',
+  GAME_OVER: 'GAME_OVER',
+  VICTORY: 'VICTORY',
+};
+
 export const CFG = {
   // viewport
   viewW: 224,
@@ -47,6 +57,22 @@ export const CFG = {
   beamDiveDown: 40,
   beamDiveSpeed: 90,
   beamConeSpread: 60,
+
+  // game progression
+  wavesForVictory: 10,
+
+  // title screen
+  gameTitle: "TO THE DEATH STAR",
+  gameSubtitle: "AND BACK",
+  gameStory: [
+    "A mighty power station halfway across",
+    "the galaxy is charging a weapon",
+    "capable of destroying Earth.",
+    "",
+    "Debbie climbs into her starship,",
+    "the GIZMO, to defend her family",
+    "and cats from certain doom.",
+  ],
 };
 
 // Export some convenience aliases (optional)
