@@ -278,6 +278,8 @@ export function update(dt, state, keys) {
           e.x = endP.x - e.w/2; e.y = endP.y - e.h/2;
           // fix the captor Y so it doesn't jitter during beam extension
           e.fixedY = endP.y - Math.floor(e.h/2);
+          // ensure the captor's visible y is set immediately
+          e.y = e.fixedY;
           const finalCenterY = endP.y;
           const estimatedDy = Math.max(0, state.player.y - finalCenterY);
           const maxLen = Math.max(120, estimatedDy + 80);
@@ -549,15 +551,20 @@ export function update(dt, state, keys) {
         captor.beaming = false;
         // build a return path by reversing the beamPath segments (if available)
         if (captor.beamPath && captor.beamPath.length) {
-          const ret = captor.beamPath.slice().reverse().map(s => ({
-            p0: s.p3,
-            p1: s.p2,
-            p2: s.p1,
-            p3: s.p0
-          }));
-          // compute lengths and durations
-          for (const s of ret) s._len = segLength(s);
-          const speed = CFG.beamDiveSpeed || 90;
+          // build a smoother return path from current center to formation slot center
+          const curCx = captor.x + captor.w/2;
+          const curCy = captor.y + captor.h/2;
+          const targetCx = captor.slotX;
+          const targetCy = captor.slotY;
+          const retSeg = {
+            p0: { x: curCx, y: curCy },
+            p1: { x: curCx + (curCx < targetCx ? 20 : -20), y: curCy - 30 },
+            p2: { x: targetCx + (Math.random() - 0.5) * 40, y: targetCy - 30 },
+            p3: { x: targetCx, y: targetCy }
+          };
+          retSeg._len = segLength(retSeg);
+          const ret = [retSeg];
+          const speed = (CFG.beamDiveSpeed || 90) * 0.8;
           captor.path = ret;
           captor.mode = 'return';
           captor.segIdx = 0;
