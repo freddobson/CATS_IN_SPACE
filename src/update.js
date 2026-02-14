@@ -683,14 +683,15 @@ function updatePlaying(dt, state, keys) {
         state.enemies.splice(idx, 1);
       }
 
-      // ensure any captor/beam state is released so captor can return
-      releaseCaptor(state);
-
       if (state.player.lives <= 0) {
+        // Game over - keep capturedShip if it exists (don't release captor)
         state.player.alive = false;
         state.gameOver = true;
+        // Clear beams but preserve capturedShip
+        state.beams.length = 0;
       } else {
-        // respawn position so player can move
+        // Player still has lives - respawn but DON'T release captor/capturedShip
+        // The captured ship should persist until the captor is destroyed
         state.player.x = state.VIEW_W / 2 - 12;
         state.player.y = state.VIEW_H - 56;
         state.player.captureT = 0;
@@ -746,14 +747,13 @@ function updatePlaying(dt, state, keys) {
         playHit();
         boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
 
-        // ensure any captor/beam state is released so captor can return
-        releaseCaptor(state);
-
         if (state.player.lives <= 0) {
+          // Game over - keep capturedShip if it exists
           state.player.alive = false;
           state.gameOver = true;
+          state.beams.length = 0;
         } else {
-          // respawn position so player can move
+          // Player still has lives - respawn but DON'T release captor/capturedShip
           state.player.x = state.VIEW_W / 2 - 12;
           state.player.y = state.VIEW_H - 56;
           state.player.captureT = 0;
@@ -861,20 +861,20 @@ function updatePlaying(dt, state, keys) {
           state.player.flash = 0.25;
           playCapture();
           
+          // Create capturedShip visual that will follow the captor (even on game over)
+          state.capturedShip = {
+            x: state.player.x,
+            y: state.player.y,
+            w: state.player.w,
+            h: state.player.h,
+          };
+          state.captorId = captor.id;
+          
           if (state.player.lives <= 0) {
-            // Game over - no respawn
+            // Game over - capturedShip persists
             state.player.alive = false;
             state.gameOver = true;
           } else {
-            // Create capturedShip visual that will follow the captor
-            state.capturedShip = {
-              x: state.player.x,
-              y: state.player.y,
-              w: state.player.w,
-              h: state.player.h,
-            };
-            state.captorId = captor.id;
-            
             // Respawn active player at bottom
             state.player.x = state.VIEW_W / 2 - 12;
             state.player.y = state.VIEW_H - 56;
