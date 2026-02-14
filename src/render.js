@@ -193,6 +193,22 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
     ctx.globalAlpha = 1.0;
   }
 
+  // powerups (treats, fish, hearts)
+  for (const p of state.powerups) {
+    const iconX = p.x | 0;
+    const iconY = p.y | 0;
+    if (p.type === 'treat') {
+      ctx.fillStyle = "#FFB366";
+      ctx.fillRect(iconX - 2, iconY - 2, 4, 4);
+    } else if (p.type === 'fish') {
+      ctx.fillStyle = "#FF99FF";
+      ctx.fillRect(iconX - 2, iconY - 2, 4, 4);
+    } else if (p.type === 'heart') {
+      ctx.fillStyle = "#FF4466";
+      ctx.fillRect(iconX - 2, iconY - 2, 4, 4);
+    }
+  }
+
   // capturedShip (if exists, draw it following the captor)
   if (state.capturedShip) {
     ctx.fillStyle = "#7CFF6B";
@@ -213,6 +229,18 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
   ctx.fillStyle = "#ffffff";
   ctx.font = "9px monospace";
   ctx.fillText(`SCORE ${state.player.score}`, 8, 15);
+  
+  // Powerup status (left side, below score)
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(4, 20, 70, 14);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "8px monospace";
+  if (state.treatActive) {
+    ctx.fillText(`TREAT: ${state.treatT.toFixed(1)}s`, 8, 31);
+  }
+  if (state.fishActive) {
+    ctx.fillText(`FISH: ${state.fishT.toFixed(1)}s`, 8, 31);
+  }
   
   // Lives display (right side)
   ctx.fillText(`x${state.player.lives}`, VIEW_W - 20, 15);

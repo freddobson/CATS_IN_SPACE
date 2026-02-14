@@ -71,8 +71,14 @@ export function createState(VIEW_W, VIEW_H) {
     captorId: null,
     capturedShip: null, // visual representation of captured player following captor
     rescueShip: null, // falling ship that player can catch for dual mode
+    powerups: [], // dropped powerups (treats, fish, hearts)
     beams: [],
     gameOver: false,
+    // powerup timers
+    treatActive: false,
+    treatT: 0,
+    fishActive: false,
+    fishT: 0,
   };
 }
 
@@ -449,13 +455,22 @@ function updatePlaying(dt, state, keys) {
   // always tick the fire cooldown so the player can fire immediately after release
   state.player.fireCd = Math.max(0, state.player.fireCd - dt);
 
+  // Apply powerup effects to movement and fire rate
+  let currentPlayerSpeed = PLAYER_SPEED;
+  let currentFireCooldown = FIRE_COOLDOWN;
+  
+  if (state.treatActive) {
+    currentPlayerSpeed *= CFG.treatSpeedBoost;
+    currentFireCooldown /= CFG.treatFireBoost;
+  }
+
   if (!state.gameOver && state.player.alive && !state.player.captured) {
     const left  = keys.has('arrowleft') || keys.has('a');
     const right = keys.has('arrowright') || keys.has('d');
     const fire  = keys.has(' ');
 
-    if (left)  state.player.x -= PLAYER_SPEED * dt;
-    if (right) state.player.x += PLAYER_SPEED * dt;
+    if (left)  state.player.x -= currentPlayerSpeed * dt;
+    if (right) state.player.x += currentPlayerSpeed * dt;
     state.player.x = clamp(state.player.x, 6, state.VIEW_W - state.player.w - 6);
 
     if (fire && state.player.fireCd <= 0) {
@@ -483,7 +498,7 @@ function updatePlaying(dt, state, keys) {
           vy: -BULLET_SPEED 
         });
       }
-      state.player.fireCd = FIRE_COOLDOWN;
+      state.player.fireCd = currentFireCooldown;
       playShot();
     }
   }
@@ -525,6 +540,55 @@ function updatePlaying(dt, state, keys) {
     if (state.rescueShip && state.rescueShip.y > state.VIEW_H + 20) {
       state.rescueShip = null;
     }
+  }
+
+  // powerups (treat, fish, heart)
+  for (let i = state.powerups.length - 1; i >= 0; i--) {
+    const p = state.powerups[i];
+    p.y += p.vy * dt;
+    
+    // Slight angle drift (away from gizmo)
+    const dx = (p.x - (state.player.x + state.player.w / 2));
+    const magnitude = Math.max(1, Math.abs(dx));
+    p.x += (dx / magnitude) * 20 * dt; // Drift away slowly
+    
+    // Check if player collects it
+    if (!state.gameOver && state.player.alive) {
+      const pdx = (state.player.x + state.player.w / 2) - p.x;
+      const pdy = (state.player.y + state.player.h / 2) - p.y;
+      const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+      
+      if (pdist <= CFG.powerupCatchRadius) {
+        // Apply powerup effect
+        if (p.type === 'treat') {
+          state.treatActive = true;
+          state.treatT = CFG.treatDuration;
+          playCapture(); // Chomping sound
+        } else if (p.type === 'fish') {
+          state.fishActive = true;
+          state.fishT = CFG.fishDuration;
+          playCapture();
+        } else if (p.type === 'heart') {
+          state.player.lives++;
+          playCapture();
+        }
+        
+        state.powerups.splice(i, 1);
+      }
+    }
+    
+    // Remove if off screen
+    if (p.y > state.VIEW_H + 20) state.powerups.splice(i, 1);
+  }
+
+  // Update powerup timers
+  if (state.treatActive) {
+    state.treatT -= dt;
+    if (state.treatT <= 0) state.treatActive = false;
+  }
+  if (state.fishActive) {
+    state.fishT -= dt;
+    if (state.fishT <= 0) state.fishActive = false;
   }
 
   // enemies
@@ -779,6 +843,16 @@ function updatePlaying(dt, state, keys) {
           playExplosion();
           boom(state, e.x + e.w/2, e.y + e.h/2, e.w);
           
+          // Drop powerups (mutually exclusive: heart > fish > treat)
+          const rand = Math.random();
+          if (rand < CFG.heartDropChance) {
+            state.powerups.push({ type: 'heart', x: e.x + e.w / 2, y: e.y + e.h, vy: CFG.powerupDriftSpeed });
+          } else if (rand < CFG.heartDropChance + CFG.fishDropChance) {
+            state.powerups.push({ type: 'fish', x: e.x + e.w / 2, y: e.y + e.h, vy: CFG.powerupDriftSpeed });
+          } else if (rand < CFG.heartDropChance + CFG.fishDropChance + CFG.treatDropChance) {
+            state.powerups.push({ type: 'treat', x: e.x + e.w / 2, y: e.y + e.h, vy: CFG.powerupDriftSpeed });
+          }
+          
           // If this enemy was the captor, drop rescue ship
           if (state.captorId === e.id && state.capturedShip) {
             state.rescueShip = {
@@ -800,8 +874,8 @@ function updatePlaying(dt, state, keys) {
     if (hit) state.bullets.splice(bi, 1);
   }
 
-  // collisions: enemy bullets -> player
-  if (!state.gameOver && state.player.alive && !state.player.hitThisFrame) {
+  // collisions: enemy bullets -> player (fish provides invulnerability)
+  if (!state.gameOver && state.player.alive && !state.player.hitThisFrame && !state.fishActive) {
     for (let i = state.ebullets.length - 1; i >= 0; i--) {
       const b = state.ebullets[i];
       if (aabb(b, state.player)) {

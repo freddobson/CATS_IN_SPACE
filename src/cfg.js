@@ -66,6 +66,20 @@ export const CFG = {
   rescueCatchRadius: 12,
   dualShotSpacing: 8,
 
+  // powerups
+  treatDropChance: 0.05, // 5% chance
+  treatDuration: 30, // seconds
+  treatSpeedBoost: 1.1, // 10% speed increase
+  treatFireBoost: 1.15, // 15% fire rate increase
+  
+  fishDropChance: 0.03, // 3% chance
+  fishDuration: 5, // seconds invulnerability
+  
+  heartDropChance: 0.01, // 1% chance
+  
+  powerupDriftSpeed: 40, // pixels/sec downward
+  powerupCatchRadius: 14,
+
   // game progression
   wavesForVictory: 10,
 
