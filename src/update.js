@@ -147,6 +147,11 @@ export function resetGame(state) {
   state.player.score = 0;
   state.player.fireCd = 0;
   state.player.flash = 0;
+  state.player.captured = false;
+  state.player.captureT = 0;
+  state.captorId = null;
+  state.beams.length = 0;
+  state.beamReserved = {};
 
   state.gameOver = false;
 
@@ -247,15 +252,15 @@ export function update(dt, state, keys) {
         if (e.segIdx >= e.path.length) {
           e.mode = 'formation';
           e.segIdx = e.path.length - 1;
-          e.x = e.slotX + sway;
-          e.y = e.slotY;
+          e.x = e.slotX - e.w/2 + sway;
+          e.y = e.slotY - e.h/2;
         }
       }
 
       const segNow = e.path[Math.min(e.segIdx, e.path.length - 1)];
       const p = bezier3(segNow.p0, segNow.p1, segNow.p2, segNow.p3, clamp(e.t, 0, 1));
-      e.x = p.x;
-      e.y = p.y;
+      e.x = p.x - e.w/2;
+      e.y = p.y - e.h/2;
     }
 
     // beam-dive handling (boss flies down a bezier toward player before firing)
@@ -304,6 +309,15 @@ export function update(dt, state, keys) {
       if (state.player.lives <= 0) {
         state.player.alive = false;
         state.gameOver = true;
+      } else {
+        // respawn position and clear capture/beam state so player can move
+        state.player.x = state.VIEW_W / 2 - 6;
+        state.player.y = state.VIEW_H - 28;
+        state.player.captured = false;
+        state.player.captureT = 0;
+        state.captorId = null;
+        state.beams.length = 0;
+        state.beamReserved = {};
       }
 
       break;
@@ -363,8 +377,8 @@ export function update(dt, state, keys) {
       const base = formationSlot(state, e.slotCol, e.slotRow);
       e.slotX = base.x;
       e.slotY = base.y;
-      e.x = e.slotX + sway;
-      e.y = e.slotY;
+      e.x = e.slotX - e.w/2 + sway;
+      e.y = e.slotY - e.h/2;
 
       if (!state.gameOver && state.player.alive) {
         const chance = ENEMY_FIRE_CHANCE * dt * 60;
@@ -455,6 +469,15 @@ export function update(dt, state, keys) {
         if (state.player.lives <= 0) {
           state.player.alive = false;
           state.gameOver = true;
+        } else {
+          // respawn position and clear capture/beam state so player can move
+          state.player.x = state.VIEW_W / 2 - 6;
+          state.player.y = state.VIEW_H - 28;
+          state.player.captured = false;
+          state.player.captureT = 0;
+          state.captorId = null;
+          state.beams.length = 0;
+          state.beamReserved = {};
         }
         break;
       }
