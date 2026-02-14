@@ -34,6 +34,9 @@ export const CFG = {
   diveY2: 140,
   diveExitY: 330,
 
+  // dive speed (pixels/sec) used to normalize bezier segment timing
+  diveSpeed: 220,
+
   // beam (boss capture)
   beamChance: 0.12,
   beamDuration: 1.2,

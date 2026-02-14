@@ -166,7 +166,12 @@ export function update(dt, state, keys) {
             e.mode = 'dive';
             e.path = paths.dive;
             e._returnPath = paths.ret;
-            e.segIdx = 0; e.t = 0; e.segDur = CFG.diveSegDuration;
+            e.segIdx = 0;
+            e.t = 0;
+            // compute per-segment durations from approximate lengths
+            const speed = CFG.diveSpeed || CFG.diveSegDuration;
+            e.segDurs = e.path.map(s => Math.max(0.06, (s._len || 20) / speed));
+            e.segDur = e.segDurs[0];
           }
         }
       }
@@ -216,6 +221,7 @@ export function update(dt, state, keys) {
     }
 
     if (e.mode === 'path') {
+      e.segDur = e.segDurs ? e.segDurs[e.segIdx] : e.segDur;
       e.t += dt / e.segDur;
 
       if (e.t >= 1) {
@@ -235,8 +241,23 @@ export function update(dt, state, keys) {
       e.y = p.y;
     }
 
+    // collision: enemy -> player (dive-bomb or ram)
+    if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
+      // apply same effect as enemy bullet
+      state.player.flash = 0.25;
+      state.player.lives--;
+      boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
+      if (state.player.lives <= 0) {
+        state.player.alive = false;
+        state.gameOver = true;
+      }
+      // don't remove enemy; one collision per frame is enough
+      break;
+    }
+
     // Dive handling (sits before formation so it isn't overwritten)
     if (e.mode === 'dive') {
+      e.segDur = e.segDurs ? e.segDurs[e.segIdx] : e.segDur;
       const segNow = e.path[Math.min(e.segIdx, e.path.length - 1)];
       e.t += dt / e.segDur;
       if (e.t >= 1) {
@@ -248,7 +269,13 @@ export function update(dt, state, keys) {
           e.path = e._returnPath;
           e.segIdx = 0;
           e.t = 0;
-          e.segDur = CFG.diveSegDuration;
+          // compute return durations if available
+          if (e.path && e.path.map) {
+            e.segDurs = e.path.map(s => Math.max(0.06, (s._len || 20) / (CFG.diveSpeed || CFG.diveSegDuration)));
+            e.segDur = e.segDurs[0];
+          } else {
+            e.segDur = CFG.diveSegDuration;
+          }
         }
       }
       const cur = e.path[Math.min(e.segIdx, e.path.length - 1)];

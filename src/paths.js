@@ -103,8 +103,27 @@ export function makeDivePath(e) {
   const r2 = { x: clamp(rx + rand(-70, 70), 0, VIEW_W), y: ry + 90 };
   const r3 = { x: rx, y: ry };
 
-  return {
-    dive: [{ p0: a0, p1: a1, p2: a2, p3: a3 }, { p0: b0, p1: b1, p2: b2, p3: b3 }],
-    ret:  [{ p0: r0, p1: r1, p2: r2, p3: r3 }],
-  };
+  const dive = [{ p0: a0, p1: a1, p2: a2, p3: a3 }, { p0: b0, p1: b1, p2: b2, p3: b3 }];
+  const ret = [{ p0: r0, p1: r1, p2: r2, p3: r3 }];
+
+  // attach approximate length to each segment for speed normalization
+  function segLength(seg) {
+    const steps = 12;
+    let len = 0;
+    let prev = seg.p0;
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const p = bezier3(seg.p0, seg.p1, seg.p2, seg.p3, t);
+      const dx = p.x - prev.x;
+      const dy = p.y - prev.y;
+      len += Math.sqrt(dx*dx + dy*dy);
+      prev = p;
+    }
+    return len;
+  }
+
+  for (const s of dive) s._len = segLength(s);
+  for (const s of ret) s._len = segLength(s);
+
+  return { dive, ret };
 }
