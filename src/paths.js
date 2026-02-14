@@ -93,7 +93,7 @@ export function makeDivePath(e, player) {
   const b2 = { x: tx + rand(-12, 12), y: y2 + 20 };
   const b3 = { x: tx,                y: exitY };
 
-  const rx = e.slotX;
+  const px = playerPos ? (playerPos.x + (playerPos.w || 0) / 2) : VIEW_W / 2;
   const ry = e.slotY;
 
   const r0 = b3;
