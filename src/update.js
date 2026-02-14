@@ -329,10 +329,16 @@ export function update(dt, state, keys) {
         // Boss beam attack (capture) - only if no current captor
         if (e.kind === 'boss' && !state.captorId && Math.random() < (CFG.beamChance || 0) * dt * 60) {
           const beamId = Math.random().toString(36).slice(2);
-          const maxLen = Math.max(40, (state.player.y - (e.y + e.h)) + 20);
+          // compute a generous max length so the beam can reach the player after the captor dives
+          const estimatedDy = Math.max(0, (state.player.y - (e.y + e.h)));
+          const maxLen = Math.max(60, estimatedDy + (CFG.beamDiveDown || 40) + 30);
           e.beaming = true;
           e.beamOrigY = e.y;
           e.beamTargetY = e.y + (CFG.beamDiveDown || 40);
+          // reserve this captor so another boss won't start a beam simultaneously
+          state.captorId = e.id;
+          state.beamReserved = state.beamReserved || {};
+          state.beamReserved[beamId] = e.id;
           state.beams.push({
             id: beamId,
             enemyId: e.id,
@@ -444,7 +450,22 @@ export function update(dt, state, keys) {
         captor.beaming = false;
         if (typeof captor.beamOrigY === 'number') {
           captor.y = captor.beamOrigY; // snap back for simplicity
+          delete captor.beamOrigY;
+          delete captor.beamTargetY;
         }
+        // if player was captured by this captor, release them
+        if (state.player.captured && state.captorId === captor.id) {
+          state.player.captured = false;
+          state.captorId = null;
+        }
+      }
+      // clear any reservation for this beam id
+      if (state.beamReserved && state.beamReserved[b.id]) {
+        delete state.beamReserved[b.id];
+      }
+      // if no more reservations exist, clear captorId if not actively capturing
+      if (state.beamReserved && Object.keys(state.beamReserved).length === 0 && !state.player.captured) {
+        state.captorId = null;
       }
       state.beams.splice(i, 1);
     }
