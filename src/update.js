@@ -70,6 +70,61 @@ export function createState(VIEW_W, VIEW_H) {
   };
 }
 
+// Release any captor/beam state and free the player (used on player death or forced release)
+export function releaseCaptor(state) {
+  const capId = state.captorId;
+  if (!capId) return;
+
+  // remove beams owned by this captor
+  state.beams = state.beams.filter(b => b.enemyId !== capId);
+
+  // clear any beam reservations for this captor
+  if (state.beamReserved) {
+    for (const k of Object.keys(state.beamReserved)) {
+      if (state.beamReserved[k] === capId) delete state.beamReserved[k];
+    }
+  }
+
+  // clear captor flags
+  const captor = state.enemies.find(en => en.id === capId);
+  if (captor) {
+    captor.beaming = false;
+    delete captor.beamPath;
+    delete captor.fixedY;
+    delete captor.fixedX;
+    // if captor was holding player, schedule return if possible
+    if (!captor.mode || captor.mode === 'beam') {
+      captor.mode = 'return';
+      // build a simple return segment back to formation
+      const curCx = captor.x + captor.w/2;
+      const curCy = captor.y + captor.h/2;
+      const targetCx = captor.slotX;
+      const targetCy = captor.slotY;
+      const retSeg = {
+        p0: { x: curCx, y: curCy },
+        p1: { x: curCx + (curCx < targetCx ? 20 : -20), y: curCy - 30 },
+        p2: { x: targetCx + (Math.random() - 0.5) * 40, y: targetCy - 30 },
+        p3: { x: targetCx, y: targetCy }
+      };
+      retSeg._len = segLength(retSeg);
+      const speed = (CFG.beamDiveSpeed || 90) * 0.8;
+      captor.path = [retSeg];
+      captor.segIdx = 0; captor.t = 0;
+      captor.segDurs = captor.path.map(s => Math.max(0.06, (s._len || 20) / speed));
+      captor.segDur = captor.segDurs[0];
+    }
+  }
+
+  // release player
+  if (state.player) {
+    state.player.captured = false;
+    state.player.invulnerable = false;
+    state.player.captureT = 0;
+  }
+
+  state.captorId = null;
+}
+
 function countDivers(state) {
   let n = 0;
   for (const e of state.enemies) if (e.mode === 'dive' || e.mode === 'return') n++;
@@ -156,6 +211,24 @@ export function resetGame(state) {
   state.gameOver = false;
 
   spawnWave(state);
+}
+
+function releaseAllBeams(state) {
+  if (!state) return;
+  // clear beam objects and reset any captor flags so they can resume normal behavior
+  for (const b of (state.beams || [])) {
+    const captor = state.enemies.find(en => en.id === b.enemyId);
+    if (captor) {
+      captor.beaming = false;
+      // clear beamPath so return logic isn't confused
+      delete captor.beamPath;
+      delete captor.fixedY;
+      delete captor.fixedX;
+    }
+  }
+  state.beams.length = 0;
+  state.beamReserved = {};
+  state.captorId = null;
 }
 
 export function update(dt, state, keys) {
@@ -299,6 +372,10 @@ export function update(dt, state, keys) {
 
     // collision: enemy -> player (dive-bomb or ram)
     if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
+      // if player is invulnerable (captured), ignore ram collisions
+      // but allow collisions if the collider is another player (future multiplayer)
+      if (state.player.invulnerable && e.kind !== 'player') continue;
+
       // damage player, spawn explosion, and remove the enemy
       state.player.flash = 0.25;
       state.player.lives--;
@@ -312,18 +389,17 @@ export function update(dt, state, keys) {
         state.enemies.splice(idx, 1);
       }
 
+      // ensure any captor/beam state is released so captor can return
+      releaseCaptor(state);
+
       if (state.player.lives <= 0) {
         state.player.alive = false;
         state.gameOver = true;
       } else {
-        // respawn position and clear capture/beam state so player can move
+        // respawn position so player can move
         state.player.x = state.VIEW_W / 2 - 6;
         state.player.y = state.VIEW_H - 28;
-        state.player.captured = false;
         state.player.captureT = 0;
-        state.captorId = null;
-        state.beams.length = 0;
-        state.beamReserved = {};
       }
 
       break;
@@ -475,22 +551,27 @@ export function update(dt, state, keys) {
     for (let i = state.ebullets.length - 1; i >= 0; i--) {
       const b = state.ebullets[i];
       if (aabb(b, state.player)) {
+        // if player is invulnerable (e.g., captured), remove bullet but ignore damage
         state.ebullets.splice(i, 1);
+        if (state.player.invulnerable) {
+          break;
+        }
+
         state.player.flash = 0.25;
         state.player.lives--;
         boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
+
+        // ensure any captor/beam state is released so captor can return
+        releaseCaptor(state);
+
         if (state.player.lives <= 0) {
           state.player.alive = false;
           state.gameOver = true;
         } else {
-          // respawn position and clear capture/beam state so player can move
+          // respawn position so player can move
           state.player.x = state.VIEW_W / 2 - 6;
           state.player.y = state.VIEW_H - 28;
-          state.player.captured = false;
           state.player.captureT = 0;
-          state.captorId = null;
-          state.beams.length = 0;
-          state.beamReserved = {};
         }
         break;
       }
@@ -534,6 +615,7 @@ export function update(dt, state, keys) {
           // player touched by cone -> capture; snap player immediately behind captor
           state.player.captured = true;
           state.player.captureT = 0;
+          state.player.invulnerable = true;
           state.captorId = captor.id;
           state.player.x = Math.round(captor.x + captor.w / 2 - state.player.w / 2);
           state.player.y = Math.round(captor.y - state.player.h - 2);
