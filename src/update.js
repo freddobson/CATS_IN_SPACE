@@ -162,7 +162,7 @@ export function update(dt, state, keys) {
         if (countDivers(state) < maxActive) {
           const e = pickDiver(state);
           if (e) {
-            const paths = makeDivePath(e);
+            const paths = makeDivePath(e, state.player);
             e.mode = 'dive';
             e.path = paths.dive;
             e._returnPath = paths.ret;
