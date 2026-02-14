@@ -1,6 +1,25 @@
-# Gizmos Revenge — Local dev & GH Pages
+# Gizmo's Revenge
 
-Small Galaga-style HTML5 canvas shooter. Uses ES modules, so files must be served over HTTP(S).
+**A Valentine's Day Gift for Debbie** ❤️
+
+## The Story: To the Death Star and Back
+
+Earth's cats are in mortal danger! An alien armada of sentient cat toys has invaded, determined to enslave our feline friends. But there's hope — Debbie, Earth's greatest pilot, commands the experimental fighter **Gizmo** (a sleek black cat-themed ship).
+
+Armed with determination and her trusty laser cannons, Debbie must face waves of enemies:
+- **Toy Mice** - Fast and erratic
+- **Feathers** - Swooping dive bombers  
+- **Yarn Balls** - Tangling mid-tier threats
+- **Catnip Clouds** - Disorienting hazards
+- **Laser Pointers** - Boss enemies that deploy tractor beams to capture Gizmo!
+
+Rescue your captured ship by destroying the laser pointer boss, then fight with **dual ships** for devastating firepower!
+
+---
+
+## Technical Details
+
+A Galaga-style HTML5 canvas shooter with custom cat-themed sprites. Uses ES modules, so files must be served over HTTP(S).
 
 Run locally (recommended):
 
