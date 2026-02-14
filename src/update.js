@@ -1,5 +1,6 @@
 import { CFG, PLAYER_SPEED, BULLET_SPEED, ENEMY_BULLET_SPEED, FIRE_COOLDOWN, ENEMY_FIRE_CHANCE, HIT_FLASH, STAR_COUNT } from './cfg.js';
 import { bezier3, buildWavePaths } from './paths.js';
+import { makeEnemy, formationSlot } from './entities.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -49,36 +50,7 @@ export function createState(VIEW_W, VIEW_H) {
   };
 }
 
-export function formationSlot(state, col, row) {
-  const formation = state.formation;
-  const x = formation.originX + (col - (formation.cols - 1) / 2) * formation.dx;
-  const y = formation.originY + row * formation.dy;
-  return { x, y };
-}
 
-export function makeEnemy({ kind, slotCol, slotRow, slotX, slotY, pathSegs, spawnDelay }) {
-  const isBoss = kind === 'boss';
-  return {
-    kind,
-    x: slotX, y: slotY,
-    w: isBoss ? 14 : 12,
-    h: isBoss ? 12 : 10,
-    hp: isBoss ? 2 : 1,
-    score: isBoss ? 150 : 50,
-
-    mode: 'spawning',
-    spawnDelay,
-    path: pathSegs,
-    segIdx: 0,
-    t: 0,
-    segDur: 1.0,
-    arrived: false,
-
-    slotCol, slotRow,
-    slotX, slotY,
-    flash: 0,
-  };
-}
 
 export function boom(state, x, y, n = 10) {
   for (let i = 0; i < n; i++) {
