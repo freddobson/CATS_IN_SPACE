@@ -445,41 +445,6 @@ function updatePlaying(dt, state, keys) {
       continue;
     }
 
-    // collision: enemy -> player (dive-bomb or ram)
-    if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
-      // if player is invulnerable (captured), ignore ram collisions
-      // but allow collisions if the collider is another player (future multiplayer)
-      if (state.player.invulnerable && e.kind !== 'player') continue;
-
-      // damage player, spawn explosion, and remove the enemy
-      state.player.flash = 0.25;
-      state.player.lives--;
-      boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
-
-      // remove the enemy that collided
-      const idx = state.enemies.indexOf(e);
-      if (idx !== -1) {
-        // bigger explosion at enemy position
-        boom(state, e.x + e.w/2, e.y + e.h/2, e.kind === 'boss' ? 14 : 10);
-        state.enemies.splice(idx, 1);
-      }
-
-      // ensure any captor/beam state is released so captor can return
-      releaseCaptor(state);
-
-      if (state.player.lives <= 0) {
-        state.player.alive = false;
-        state.gameOver = true;
-      } else {
-        // respawn position so player can move
-        state.player.x = state.VIEW_W / 2 - 6;
-        state.player.y = state.VIEW_H - 28;
-        state.player.captureT = 0;
-      }
-
-      break;
-    }
-
     // Dive handling (sits before formation so it isn't overwritten)
     if (e.mode === 'dive') {
       e.segDur = e.segDurs ? e.segDurs[e.segIdx] : e.segDur;
@@ -594,6 +559,50 @@ function updatePlaying(dt, state, keys) {
           e.segDur = e.segDurs[0];
         }
       }
+    }
+  }
+
+  // collision: enemy -> player (dive-bomb or ram)
+  // Check AFTER all mode handlers have updated enemy positions
+  for (const e of state.enemies) {
+    if (e.mode === 'spawning') continue;
+    
+    if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
+      // if player is invulnerable (captured) AND this is the captor, allow overlap
+      if (state.player.invulnerable) {
+        // Skip collision if this is the captor holding the player
+        if (state.captorId === e.id) continue;
+        // Also skip for other enemies (they shouldn't ram captured player)
+        continue;
+      }
+
+      // damage player, spawn explosion, and remove the enemy
+      state.player.flash = 0.25;
+      state.player.lives--;
+      boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
+
+      // remove the enemy that collided
+      const idx = state.enemies.indexOf(e);
+      if (idx !== -1) {
+        // bigger explosion at enemy position
+        boom(state, e.x + e.w/2, e.y + e.h/2, e.kind === 'boss' ? 14 : 10);
+        state.enemies.splice(idx, 1);
+      }
+
+      // ensure any captor/beam state is released so captor can return
+      releaseCaptor(state);
+
+      if (state.player.lives <= 0) {
+        state.player.alive = false;
+        state.gameOver = true;
+      } else {
+        // respawn position so player can move
+        state.player.x = state.VIEW_W / 2 - 6;
+        state.player.y = state.VIEW_H - 28;
+        state.player.captureT = 0;
+      }
+
+      break;
     }
   }
 
