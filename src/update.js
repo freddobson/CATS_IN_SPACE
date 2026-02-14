@@ -4,6 +4,21 @@ import { makeEnemy, formationSlot } from './entities.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
+// approximate bezier segment length (copied from paths.js logic)
+function segLength(seg) {
+  const steps = 12;
+  let len = 0;
+  let prev = seg.p0;
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const p = bezier3(seg.p0, seg.p1, seg.p2, seg.p3, t);
+    const dx = p.x - prev.x;
+    const dy = p.y - prev.y;
+    len += Math.sqrt(dx*dx + dy*dy);
+    prev = p;
+  }
+  return len;
+}
 
 export function createState(VIEW_W, VIEW_H) {
   const stars = Array.from({ length: STAR_COUNT }, () => ({
@@ -243,6 +258,31 @@ export function update(dt, state, keys) {
       e.y = p.y;
     }
 
+    // beam-dive handling (boss flies down a bezier toward player before firing)
+    if (e.mode === 'beamdive') {
+      e.segDur = e.segDurs ? e.segDurs[e.segIdx] : e.segDur;
+      e.t += dt / e.segDur;
+      const segNow = e.beamPath[Math.min(e.segIdx, e.beamPath.length - 1)];
+      if (e.t >= 1) {
+        e.t = 0;
+        e.segIdx++;
+        if (e.segIdx >= e.beamPath.length) {
+          // reached dive end -> create beam object and start extending
+          const bId = e.beamId || Math.random().toString(36).slice(2);
+          const estimatedDy = Math.max(0, (state.player.y - (e.y + e.h)));
+          const maxLen = Math.max(60, estimatedDy + (CFG.beamDiveDown || 40) + 30);
+          state.beams.push({ id: bId, enemyId: e.id, life: CFG.beamDuration, active: true, phase: 'extend', len: 0, maxLen });
+          // leave e.beaming true until beam ends; switch to 'beam' mode
+          e.mode = 'beam';
+        } else {
+          e.segDur = e.segDurs[e.segIdx];
+        }
+      }
+      const p = bezier3(segNow.p0, segNow.p1, segNow.p2, segNow.p3, clamp(e.t, 0, 1));
+      e.x = p.x - e.w/2; e.y = p.y - e.h/2;
+      continue; // skip other logic while diving
+    }
+
     // collision: enemy -> player (dive-bomb or ram)
     if (!state.gameOver && state.player.alive && aabb(e, state.player)) {
       // damage player, spawn explosion, and remove the enemy
@@ -302,7 +342,13 @@ export function update(dt, state, keys) {
         e.mode = 'formation';
         e.segIdx = e.path.length - 1;
         e.t = 0;
-        delete e._returnPath;
+        // if this return was from a beam, clear captor reservation now
+        if (e.returningFromBeam) {
+          e.returningFromBeam = false;
+          // release captor reservation
+          if (state.captorId === e.id) state.captorId = null;
+        }
+        delete e.beamPath;
       } else {
         const p = bezier3(cur.p0, cur.p1, cur.p2, cur.p3, clamp(e.t, 0, 1));
         e.x = p.x - e.w/2; e.y = p.y - e.h/2;
@@ -328,26 +374,42 @@ export function update(dt, state, keys) {
 
         // Boss beam attack (capture) - only if no current captor
         if (e.kind === 'boss' && !state.captorId && Math.random() < (CFG.beamChance || 0) * dt * 60) {
+          // reserve this captor immediately to avoid race with other bosses
           const beamId = Math.random().toString(36).slice(2);
-          // compute a generous max length so the beam can reach the player after the captor dives
-          const estimatedDy = Math.max(0, (state.player.y - (e.y + e.h)));
-          const maxLen = Math.max(60, estimatedDy + (CFG.beamDiveDown || 40) + 30);
-          e.beaming = true;
-          e.beamOrigY = e.y;
-          e.beamTargetY = e.y + (CFG.beamDiveDown || 40);
-          // reserve this captor so another boss won't start a beam simultaneously
           state.captorId = e.id;
           state.beamReserved = state.beamReserved || {};
           state.beamReserved[beamId] = e.id;
-          state.beams.push({
-            id: beamId,
-            enemyId: e.id,
-            life: CFG.beamDuration,
-            active: true,
-            phase: 'extend',
-            len: 0,
-            maxLen,
-          });
+
+          // build a short bezier path from the boss down toward the player (halfway)
+          const sx = e.x + e.w / 2;
+          const sy = e.y + e.h / 2;
+          const px = state.player.x + state.player.w / 2;
+          const py = state.player.y + state.player.h / 2;
+          const tx = (sx + px) / 2 + rand(-20, 20);
+          const ty = sy + (py - sy) * 0.5 + 10;
+
+          const seg = {
+            p0: { x: sx, y: sy },
+            p1: { x: sx, y: sy + 20 },
+            p2: { x: tx, y: ty - 20 },
+            p3: { x: tx, y: ty }
+          };
+
+          seg._len = segLength(seg);
+          const beamPath = [seg];
+
+          // set up the boss to follow this beamdive path
+          e.beaming = true;
+          e.beamOrigY = e.y;
+          e.beamTargetY = e.y + (CFG.beamDiveDown || 40);
+          e.beamPath = beamPath;
+          e.beamId = beamId;
+          e.mode = 'beamdive';
+          e.segIdx = 0;
+          e.t = 0;
+          const speed = CFG.beamDiveSpeed || 90;
+          e.segDurs = e.beamPath.map(s => Math.max(0.06, (s._len || 20) / speed));
+          e.segDur = e.segDurs[0];
         }
       }
     }
@@ -445,28 +507,46 @@ export function update(dt, state, keys) {
     }
 
     if (b.life <= 0) {
-      // cleanup captor beaming flag and reset position target
+      // when beam duration ends, set up captor to return along mirrored path
       if (captor) {
         captor.beaming = false;
-        if (typeof captor.beamOrigY === 'number') {
-          captor.y = captor.beamOrigY; // snap back for simplicity
-          delete captor.beamOrigY;
-          delete captor.beamTargetY;
-        }
-        // if player was captured by this captor, release them
-        if (state.player.captured && state.captorId === captor.id) {
-          state.player.captured = false;
-          state.captorId = null;
+        // build a return path by reversing the beamPath segments
+        if (captor.beamPath && captor.beamPath.length) {
+          const ret = captor.beamPath.slice().reverse().map(s => ({
+            p0: s.p3,
+            p1: s.p2,
+            p2: s.p1,
+            p3: s.p0
+          }));
+          // compute lengths and durations
+          for (const s of ret) s._len = segLength(s);
+          const speed = CFG.beamDiveSpeed || 90;
+          captor.path = ret;
+          captor.mode = 'return';
+          captor.segIdx = 0;
+          captor.t = 0;
+          captor.segDurs = captor.path.map(s => Math.max(0.06, (s._len || 20) / speed));
+          captor.segDur = captor.segDurs[0];
+          captor.returningFromBeam = true;
+        } else {
+          // fallback: snap back
+          if (typeof captor.beamOrigY === 'number') {
+            captor.y = captor.beamOrigY;
+            delete captor.beamOrigY;
+            delete captor.beamTargetY;
+          }
+          if (state.player.captured && state.captorId === captor.id) {
+            state.player.captured = false;
+            state.captorId = null;
+          }
         }
       }
+
       // clear any reservation for this beam id
       if (state.beamReserved && state.beamReserved[b.id]) {
         delete state.beamReserved[b.id];
       }
-      // if no more reservations exist, clear captorId if not actively capturing
-      if (state.beamReserved && Object.keys(state.beamReserved).length === 0 && !state.player.captured) {
-        state.captorId = null;
-      }
+      // do not clear state.captorId here; it will be cleared when return completes
       state.beams.splice(i, 1);
     }
   }
