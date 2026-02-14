@@ -66,12 +66,12 @@ export function buildWavePaths() {
 }
 
 // Produce a two-segment dive and a single-segment return.
-export function makeDivePath(e, player) {
+export function makeDivePath(e, playerPos) {
   // start at enemy center
   const sx = e.x + e.w / 2;
   const sy = e.y + e.h / 2;
   // target near player with slight lead
-  const px = player ? player.x + player.w / 2 : VIEW_W / 2;
+  const px = playerPos ? (playerPos.x + (playerPos.w || 0) / 2) : VIEW_W / 2;
   const lead = (px - sx) * CFG.diveLead;                 // 0..1
   const tx = clamp(px + lead, 12, VIEW_W - 12);
 
@@ -93,7 +93,7 @@ export function makeDivePath(e, player) {
   const b2 = { x: tx + rand(-12, 12), y: y2 + 20 };
   const b3 = { x: tx,                y: exitY };
 
-  const px = playerPos ? (playerPos.x + (playerPos.w || 0) / 2) : VIEW_W / 2;
+  const rx = e.slotX;
   const ry = e.slotY;
 
   const r0 = b3;
