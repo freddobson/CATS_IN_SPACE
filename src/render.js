@@ -1,3 +1,5 @@
+import { CFG } from './cfg.js';
+
 // Rendering helpers. `render(state, ctx, VIEW_W, VIEW_H)` draws the full frame.
 export function beginView(ctx, VIEW_W, VIEW_H) {
   const canvas = ctx.canvas;
