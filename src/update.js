@@ -1,6 +1,7 @@
 import { CFG, GAME_STATE, PLAYER_SPEED, BULLET_SPEED, ENEMY_BULLET_SPEED, FIRE_COOLDOWN, ENEMY_FIRE_CHANCE, HIT_FLASH, STAR_COUNT } from './cfg.js';
 import { bezier3, buildWavePaths, makeDivePath } from './paths.js';
 import { makeEnemy, formationSlot } from './entities.js';
+import { playShot, playExplosion, playHit, playCapture, playBeamStart, unlockAudio } from './sfx.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -350,6 +351,7 @@ function updatePlaying(dt, state, keys) {
     if (fire && state.player.fireCd <= 0) {
       state.bullets.push({ x: state.player.x + state.player.w/2 - 1, y: state.player.y - 6, w: 2, h: 6, vy: -BULLET_SPEED });
       state.player.fireCd = FIRE_COOLDOWN;
+      playShot();
     }
   }
   state.player.flash = Math.max(0, state.player.flash - dt);
@@ -548,6 +550,7 @@ function updatePlaying(dt, state, keys) {
           const speed = CFG.beamDiveSpeed || 90;
           e.segDurs = e.beamPath.map(s => Math.max(0.06, (s._len || 20) / speed));
           e.segDur = e.segDurs[0];
+          playBeamStart();
         }
       }
     }
@@ -562,6 +565,7 @@ function updatePlaying(dt, state, keys) {
       // damage player, spawn explosion, and remove the enemy
       state.player.flash = 0.25;
       state.player.lives--;
+      playHit();
       boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
 
       // remove the enemy that collided
@@ -604,6 +608,7 @@ function updatePlaying(dt, state, keys) {
         e.flash = HIT_FLASH;
         if (e.hp <= 0) {
           state.player.score += e.score;
+          playExplosion();
           boom(state, e.x + e.w/2, e.y + e.h/2, e.kind === 'boss' ? 14 : 10);
           
           // If this enemy was the captor, release capture state
@@ -630,6 +635,7 @@ function updatePlaying(dt, state, keys) {
 
         state.player.flash = 0.25;
         state.player.lives--;
+        playHit();
         boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
 
         // ensure any captor/beam state is released so captor can return
@@ -744,6 +750,7 @@ function updatePlaying(dt, state, keys) {
           // Lose a life and respawn new player, captured ship follows captor
           state.player.lives--;
           state.player.flash = 0.25;
+          playCapture();
           
           if (state.player.lives <= 0) {
             // Game over - no respawn
