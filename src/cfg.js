@@ -43,6 +43,10 @@ export const CFG = {
   beamWidth: 10,
   beamPullSpeed: 90,
   capturedLockY: 120,
+  // beam dive and cone settings
+  beamDiveDown: 40,
+  beamDiveSpeed: 90,
+  beamConeSpread: 60,
 };
 
 // Export some convenience aliases (optional)

@@ -85,17 +85,23 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
     if (!captor) continue;
     const sx = captor.x + captor.w / 2;
     const sy = captor.y + captor.h;
-    const tx = state.player.x + state.player.w / 2;
-    const ty = state.player.y + state.player.h / 2;
+
+    const len = b.len || 0;
+    const baseHalf = (CFG.beamWidth || 10) / 2;
+    const coneExtra = CFG.beamConeSpread || 60;
+    const halfAtMax = baseHalf + coneExtra;
+    const halfAtLen = baseHalf + (len / Math.max(1, b.maxLen || 1)) * coneExtra;
+    const baseY = sy + len;
 
     ctx.save();
-    ctx.globalAlpha = 0.35;
-    ctx.fillStyle = "#8ad2ff";
-    // draw simple rectangular beam from captor to player
-    const bw = CFG.beamWidth || 8;
-    const topY = Math.min(sy, ty);
-    const botY = Math.max(sy, ty);
-    ctx.fillRect(sx - bw/2, topY, bw, botY - topY);
+    ctx.globalAlpha = b.phase === 'latched' ? 0.6 : 0.35;
+    ctx.fillStyle = '#8ad2ff';
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx - halfAtLen, baseY);
+    ctx.lineTo(sx + halfAtLen, baseY);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
   }
 

@@ -326,15 +326,21 @@ export function update(dt, state, keys) {
           }
         }
 
-        // Boss beam attack (capture)
-        if (e.kind === 'boss' && Math.random() < (CFG.beamChance || 0) * dt * 60) {
+        // Boss beam attack (capture) - only if no current captor
+        if (e.kind === 'boss' && !state.captorId && Math.random() < (CFG.beamChance || 0) * dt * 60) {
+          const beamId = Math.random().toString(36).slice(2);
+          const maxLen = Math.max(40, (state.player.y - (e.y + e.h)) + 20);
+          e.beaming = true;
+          e.beamOrigY = e.y;
+          e.beamTargetY = e.y + (CFG.beamDiveDown || 40);
           state.beams.push({
-            id: Math.random().toString(36).slice(2),
+            id: beamId,
             enemyId: e.id,
-            x: e.x + e.w / 2,
-            y: e.y + e.h,
             life: CFG.beamDuration,
             active: true,
+            phase: 'extend',
+            len: 0,
+            maxLen,
           });
         }
       }
@@ -392,36 +398,56 @@ export function update(dt, state, keys) {
     // find the enemy that fired this beam
     const captor = state.enemies.find(en => en.id === b.enemyId);
 
-    // beam intersects player -> capture
-    if (!state.player.captured && state.player.alive && captor && b.active) {
-      // simple horizontal overlap check using beam width
-      const bx = captor.x + captor.w / 2 - (CFG.beamWidth/2);
-      const bw = CFG.beamWidth;
-      const py = state.player.y;
-      if (state.player.x + state.player.w > bx && state.player.x < bx + bw && state.player.y > captor.y) {
-        state.player.captured = true;
-        state.player.captureT = 0;
-        state.captorId = captor.id;
-        b.active = false; // beam has latched
+    // beam behavior: extend toward player; captor dives down; if cone touches player -> capture
+    if (captor && b.phase === 'extend') {
+      // extend beam length
+      b.len = Math.min(b.maxLen, b.len + (CFG.beamPullSpeed || 90) * dt);
+      // move captor down toward targetY
+      if (captor.beaming && typeof captor.beamTargetY === 'number') {
+        captor.y = Math.min(captor.beamTargetY, captor.y + (CFG.beamDiveSpeed || 90) * dt);
+      }
+
+      // cone half-width grows with length
+      const dy = (state.player.y + state.player.h/2) - (captor.y + captor.h);
+      if (dy > 0 && dy <= b.len && !state.player.captured && state.player.alive) {
+        const dx = (state.player.x + state.player.w/2) - (captor.x + captor.w/2);
+        const baseHalf = (CFG.beamWidth || 10) / 2;
+        const coneExtra = CFG.beamConeSpread || 60;
+        const halfAtDy = baseHalf + (dy / b.maxLen) * coneExtra;
+        if (Math.abs(dx) <= halfAtDy) {
+          // player touched by cone -> capture
+          state.player.captured = true;
+          state.player.captureT = 0;
+          state.captorId = captor.id;
+          b.phase = 'latched';
+          b.active = false;
+        }
       }
     }
 
-    // while captured, lock player to captor position (above the captor) and disable controls
+    // while captured, lock player to captor position
     if (state.player.captured && state.captorId) {
-      // if captor no longer exists, release
       const cap = state.enemies.find(en => en.id === state.captorId);
       if (!cap) {
         state.player.captured = false;
         state.captorId = null;
       } else {
-        // snap player to just above the captor and align horizontally
         state.player.x = Math.round(cap.x + cap.w / 2 - state.player.w / 2);
         state.player.y = Math.round(cap.y - state.player.h - 2);
         state.player.captureT += dt;
       }
     }
 
-    if (b.life <= 0) state.beams.splice(i, 1);
+    if (b.life <= 0) {
+      // cleanup captor beaming flag and reset position target
+      if (captor) {
+        captor.beaming = false;
+        if (typeof captor.beamOrigY === 'number') {
+          captor.y = captor.beamOrigY; // snap back for simplicity
+        }
+      }
+      state.beams.splice(i, 1);
+    }
   }
 
   // explosions
