@@ -18,7 +18,7 @@ export function makeEnemy({ kind, slotCol, slotRow, slotX, slotY, pathSegs, spaw
     catnip: { w: 24, h: 24, hp: 2, score: 120, canBeam: false },
     
     // Boss enemies - can use beam (2x size)
-    laser: { w: 32, h: 24, hp: 3, score: 200, canBeam: true },
+    laser: { w: 24, h: 32, hp: 3, score: 200, canBeam: true },
     
     // Legacy enemies (2x size)
     bee: { w: 24, h: 20, hp: 1, score: 50, canBeam: false },

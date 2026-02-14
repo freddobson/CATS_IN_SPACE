@@ -154,7 +154,7 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
 
     ctx.save();
     ctx.globalAlpha = b.phase === 'latched' ? 0.6 : 0.35;
-    ctx.fillStyle = '#8ad2ff';
+    ctx.fillStyle = '#ff4444'; // Red laser beam
     ctx.beginPath();
     ctx.moveTo(sx, sy);
     ctx.lineTo(sx - halfAtLen, baseY);
