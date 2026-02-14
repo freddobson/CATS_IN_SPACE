@@ -179,7 +179,10 @@ export function update(dt, state, keys) {
   }
 
   // player
-  if (!state.gameOver && state.player.alive) {
+  // always tick the fire cooldown so the player can fire immediately after release
+  state.player.fireCd = Math.max(0, state.player.fireCd - dt);
+
+  if (!state.gameOver && state.player.alive && !state.player.captured) {
     const left  = keys.has('arrowleft') || keys.has('a');
     const right = keys.has('arrowright') || keys.has('d');
     const fire  = keys.has(' ');
@@ -188,7 +191,6 @@ export function update(dt, state, keys) {
     if (right) state.player.x += PLAYER_SPEED * dt;
     state.player.x = clamp(state.player.x, 6, state.VIEW_W - state.player.w - 6);
 
-    state.player.fireCd = Math.max(0, state.player.fireCd - dt);
     if (fire && state.player.fireCd <= 0) {
       state.bullets.push({ x: state.player.x + state.player.w/2 - 1, y: state.player.y - 6, w: 2, h: 6, vy: -BULLET_SPEED });
       state.player.fireCd = FIRE_COOLDOWN;
@@ -404,7 +406,7 @@ export function update(dt, state, keys) {
       }
     }
 
-    // while captured, pull player toward lock Y
+    // while captured, lock player to captor position (above the captor) and disable controls
     if (state.player.captured && state.captorId) {
       // if captor no longer exists, release
       const cap = state.enemies.find(en => en.id === state.captorId);
@@ -412,12 +414,9 @@ export function update(dt, state, keys) {
         state.player.captured = false;
         state.captorId = null;
       } else {
-        // pull player up toward capture lock Y
-        const lockY = CFG.capturedLockY || CFG.capturedLockY;
-        const targetY = lockY;
-        if (state.player.y > targetY) {
-          state.player.y = Math.max(targetY, state.player.y - CFG.beamPullSpeed * dt);
-        }
+        // snap player to just above the captor and align horizontally
+        state.player.x = Math.round(cap.x + cap.w / 2 - state.player.w / 2);
+        state.player.y = Math.round(cap.y - state.player.h - 2);
         state.player.captureT += dt;
       }
     }
