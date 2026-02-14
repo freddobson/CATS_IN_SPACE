@@ -25,14 +25,14 @@ export function createState(VIEW_W, VIEW_H) {
   const stars = Array.from({ length: STAR_COUNT }, () => ({
     x: rand(0, VIEW_W),
     y: rand(0, VIEW_H),
-    v: rand(10, 70),
+    v: rand(7, 47),
     r: Math.random() < 0.85 ? 1 : 2
   }));
 
   const player = {
-    x: VIEW_W / 2 - 6,
-    y: VIEW_H - 28,
-    w: 12, h: 10,
+    x: VIEW_W / 2 - 12,
+    y: VIEW_H - 56,
+    w: 24, h: 20,
     alive: true,
     lives: CFG.lives || 3,
     score: 0,
@@ -47,11 +47,11 @@ export function createState(VIEW_W, VIEW_H) {
     originY: 62,
     cols: 10,
     rows: 4,
-    dx: 16,
-    dy: 14,
+    dx: 32,
+    dy: 28,
     swayT: 0,
-    swayAmp: 10,
-    swaySpeed: 0.6,
+    swayAmp: 20,
+    swaySpeed: 0.4,
   };
 
   return {
@@ -264,8 +264,6 @@ export function spawnWave(state) {
   // Ensure waveNum is at least 1, and index is always valid (0 to wavePlans.length - 1)
   const waveIndex = Math.max(0, Math.min((waveNum || 1) - 1, wavePlans.length - 1));
   const plan = wavePlans[waveIndex];
-  
-  console.log(`Spawning wave ${waveNum}, pattern index ${waveIndex}:`, plan.map(e => e.kind));
 
   let delay = 0;
   for (const item of plan) {
@@ -297,8 +295,8 @@ export function resetGame(state) {
   state.enemies.length = 0;
   state.explosions.length = 0;
 
-  state.player.x = state.VIEW_W / 2 - 6;
-  state.player.y = state.VIEW_H - 28;
+  state.player.x = state.VIEW_W / 2 - 12;
+  state.player.y = state.VIEW_H - 56;
   state.player.alive = true;
   state.player.lives = CFG.lives || 3;
   state.player.score = 0;
@@ -687,8 +685,8 @@ function updatePlaying(dt, state, keys) {
         state.gameOver = true;
       } else {
         // respawn position so player can move
-        state.player.x = state.VIEW_W / 2 - 6;
-        state.player.y = state.VIEW_H - 28;
+        state.player.x = state.VIEW_W / 2 - 12;
+        state.player.y = state.VIEW_H - 56;
         state.player.captureT = 0;
       }
 
@@ -749,8 +747,8 @@ function updatePlaying(dt, state, keys) {
           state.gameOver = true;
         } else {
           // respawn position so player can move
-          state.player.x = state.VIEW_W / 2 - 6;
-          state.player.y = state.VIEW_H - 28;
+          state.player.x = state.VIEW_W / 2 - 12;
+          state.player.y = state.VIEW_H - 56;
           state.player.captureT = 0;
         }
         break;
@@ -870,8 +868,8 @@ function updatePlaying(dt, state, keys) {
             state.captorId = captor.id;
             
             // Respawn active player at bottom
-            state.player.x = state.VIEW_W / 2 - 6;
-            state.player.y = state.VIEW_H - 28;
+            state.player.x = state.VIEW_W / 2 - 12;
+            state.player.y = state.VIEW_H - 56;
             state.player.captured = false;
             state.player.invulnerable = false;
             state.player.captureT = 0;

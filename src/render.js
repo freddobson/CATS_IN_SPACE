@@ -63,7 +63,7 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
   beginView(ctx, VIEW_W, VIEW_H);
 
   // Always render background and stars
-  ctx.fillStyle = "#0a0b1a"; // Lightened with blue-purple tinge
+  ctx.fillStyle = "#2a2b4a"; // Lighter blue-purple for better sprite visibility
   ctx.fillRect(0, 0, VIEW_W, VIEW_H);
 
   ctx.fillStyle = "#ffffff";
