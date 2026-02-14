@@ -18,17 +18,17 @@ export const CFG = {
   tile: 1,
   starCount: 120,
 
-  // player (speeds reduced 33% for bigger sprites, then +10%)
+  // player (speeds reduced 33% for bigger sprites, then +10%, fire rate +35%)
   playerSpeed: 96,
-  fireCooldown: 0.18,
+  fireCooldown: 0.243,
   lives: 3,
 
   // bullets (speeds reduced 33%)
   bulletSpeed: 174,
   enemyBulletSpeed: 114,
 
-  // enemies
-  enemyFireRate: 0.015,
+  // enemies (fire rate -30%)
+  enemyFireRate: 0.0105,
   
   // debug
   enemiesDontFire: true, // Set to true to disable enemy shooting (for testing)
@@ -47,8 +47,8 @@ export const CFG = {
   diveY2: 140,
   diveExitY: 330,
 
-  // dive speed (pixels/sec) used to normalize bezier segment timing (reduced 33%)
-  diveSpeed: 147,
+  // dive speed (pixels/sec) used to normalize bezier segment timing (reduced 33%, then -15%)
+  diveSpeed: 125,
 
   // beam (boss capture, adjusted for bigger sprites)
   beamChance: 0.2,
@@ -56,8 +56,8 @@ export const CFG = {
   beamWidth: 20,
   beamPullSpeed: 60,
   capturedLockY: 120,
-  // beam dive and cone settings (adjusted for size)
-  beamDiveDown: 40,
+  // beam dive and cone settings (adjusted for size and player position)
+  beamDiveDown: 68,
   beamDiveSpeed: 60,
   beamConeSpread: 120,
 

@@ -31,7 +31,7 @@ export function createState(VIEW_W, VIEW_H) {
 
   const player = {
     x: VIEW_W / 2 - 12,
-    y: VIEW_H - 56,
+    y: VIEW_H - 28,
     w: 24, h: 20,
     alive: true,
     lives: CFG.lives || 3,
@@ -51,7 +51,7 @@ export function createState(VIEW_W, VIEW_H) {
     dy: 28,
     swayT: 0,
     swayAmp: 20,
-    swaySpeed: 0.4,
+    swaySpeed: 0.34,
   };
 
   return {
@@ -179,14 +179,14 @@ export function spawnWave(state) {
       { col: 5, row: 2, kind: 'mouse',   path: 'loopR' },
     ],
     
-    // Wave 3: Balls of yarn appear! (first laser boss!)
+    // Wave 3: Balls of yarn appear! (first laser bosses!)
     [
       { col: 2, row: 0, kind: 'mouse',  path: 'left'  },
       { col: 7, row: 0, kind: 'mouse',  path: 'right' },
       { col: 3, row: 1, kind: 'yarn',   path: 'loopL' },
       { col: 6, row: 1, kind: 'yarn',   path: 'loopR' },
       { col: 4, row: 2, kind: 'laser',  path: 'loopL' },
-      { col: 5, row: 2, kind: 'feather', path: 'loopR' },
+      { col: 5, row: 2, kind: 'laser',  path: 'loopR' },
     ],
     
     // Wave 4: Mixed formation with catnip
@@ -199,14 +199,14 @@ export function spawnWave(state) {
       { col: 5, row: 2, kind: 'catnip',  path: 'loopR' },
     ],
     
-    // Wave 5: First LASER POINTER boss!
+    // Wave 5: Double LASER POINTER bosses!
     [
       { col: 2, row: 0, kind: 'feather', path: 'left'  },
       { col: 7, row: 0, kind: 'feather', path: 'right' },
       { col: 3, row: 1, kind: 'yarn',    path: 'loopL' },
       { col: 6, row: 1, kind: 'yarn',    path: 'loopR' },
       { col: 4, row: 2, kind: 'laser',   path: 'loopL' },
-      { col: 5, row: 2, kind: 'mouse',   path: 'loopR' },
+      { col: 5, row: 2, kind: 'laser',   path: 'loopR' },
     ],
     
     // Wave 6: Yarn and catnip assault
@@ -219,13 +219,14 @@ export function spawnWave(state) {
       { col: 5, row: 2, kind: 'feather', path: 'loopR' },
     ],
     
-    // Wave 7: Double laser pointer danger!
+    // Wave 7: Triple laser pointer danger!
     [
       { col: 2, row: 0, kind: 'mouse',   path: 'left'  },
       { col: 7, row: 0, kind: 'mouse',   path: 'right' },
       { col: 3, row: 1, kind: 'catnip',  path: 'loopL' },
       { col: 6, row: 1, kind: 'catnip',  path: 'loopR' },
       { col: 3, row: 2, kind: 'laser',   path: 'loopL' },
+      { col: 4, row: 2, kind: 'laser',   path: 'loopL' },
       { col: 6, row: 2, kind: 'laser',   path: 'loopR' },
     ],
     
@@ -236,7 +237,7 @@ export function spawnWave(state) {
       { col: 2, row: 1, kind: 'yarn',    path: 'loopL' },
       { col: 7, row: 1, kind: 'catnip',  path: 'loopR' },
       { col: 4, row: 2, kind: 'laser',   path: 'loopL' },
-      { col: 5, row: 2, kind: 'yarn',    path: 'loopR' },
+      { col: 5, row: 2, kind: 'laser',   path: 'loopR' },
     ],
     
     // Wave 9: Catnip madness
@@ -246,15 +247,17 @@ export function spawnWave(state) {
       { col: 1, row: 1, kind: 'yarn',    path: 'loopL' },
       { col: 8, row: 1, kind: 'yarn',    path: 'loopR' },
       { col: 3, row: 2, kind: 'laser',   path: 'loopL' },
+      { col: 4, row: 2, kind: 'laser',   path: 'loopL' },
       { col: 6, row: 2, kind: 'laser',   path: 'loopR' },
     ],
     
-    // Wave 10: FINAL ASSAULT - Triple laser pointer boss + support
+    // Wave 10: FINAL ASSAULT - Quad laser pointer boss + support
     [
       { col: 0, row: 0, kind: 'feather', path: 'left'  },
       { col: 9, row: 0, kind: 'feather', path: 'right' },
       { col: 2, row: 1, kind: 'catnip',  path: 'loopL' },
       { col: 7, row: 1, kind: 'catnip',  path: 'loopR' },
+      { col: 2, row: 2, kind: 'laser',   path: 'loopL' },
       { col: 3, row: 2, kind: 'laser',   path: 'loopL' },
       { col: 4, row: 2, kind: 'laser',   path: 'loopL' },
       { col: 5, row: 2, kind: 'laser',   path: 'loopR' },
@@ -297,7 +300,7 @@ export function resetGame(state) {
   state.explosions.length = 0;
 
   state.player.x = state.VIEW_W / 2 - 12;
-  state.player.y = state.VIEW_H - 56;
+  state.player.y = state.VIEW_H - 28;
   state.player.alive = true;
   state.player.lives = CFG.lives || 3;
   state.player.score = 0;
@@ -693,7 +696,7 @@ function updatePlaying(dt, state, keys) {
         // Player still has lives - respawn but DON'T release captor/capturedShip
         // The captured ship should persist until the captor is destroyed
         state.player.x = state.VIEW_W / 2 - 12;
-        state.player.y = state.VIEW_H - 56;
+        state.player.y = state.VIEW_H - 28;
         state.player.captureT = 0;
       }
 
@@ -755,7 +758,7 @@ function updatePlaying(dt, state, keys) {
         } else {
           // Player still has lives - respawn but DON'T release captor/capturedShip
           state.player.x = state.VIEW_W / 2 - 12;
-          state.player.y = state.VIEW_H - 56;
+          state.player.y = state.VIEW_H - 28;
           state.player.captureT = 0;
         }
         break;
@@ -877,7 +880,7 @@ function updatePlaying(dt, state, keys) {
           } else {
             // Respawn active player at bottom
             state.player.x = state.VIEW_W / 2 - 12;
-            state.player.y = state.VIEW_H - 56;
+            state.player.y = state.VIEW_H - 28;
             state.player.captured = false;
             state.player.invulnerable = false;
             state.player.captureT = 0;
