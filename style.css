@@ -14,12 +14,13 @@ canvas {
 /* Star Wars crawl effect */
 #crawl-container {
   position: fixed;
-  top: 15%;
+  top: 50%;
   left: 50%;
   width: 400px;
-  height: 600px;
+  height: 60vh;
+  max-height: 500px;
   margin-left: -200px;
-  margin-top: -200px;
+  transform: translateY(-50%);
   perspective: 600px;
   opacity: 0;
   animation: fadein 1s ease-in forwards;
@@ -30,9 +31,9 @@ canvas {
 /* Press Enter prompt */
 #press-enter {
   position: fixed;
-  top: 37.5%;
+  top: 20px;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   font-family: monospace;
   font-size: 14px;
   color: #ffffff;
@@ -62,14 +63,14 @@ canvas {
 
 @keyframes crawl {
   0% {
-    transform: rotateX(70deg) translateZ(0) translateY(400px);
+    transform: rotateX(70deg) translateZ(0) translateY(300px);
     opacity: 1;
   }
   98% {
     opacity: 1;
   }
   100% {
-    transform: rotateX(70deg) translateZ(0) translateY(-1200px);
+    transform: rotateX(70deg) translateZ(0) translateY(-1000px);
     opacity: 0;
   }
 }
@@ -83,14 +84,14 @@ canvas {
 }
 
 .crawl h1 {
-  font-size: 42px;
+  font-size: 46px;
   font-weight: bold;
   margin-bottom: 20px;
   letter-spacing: 5px;
 }
 
 .crawl p {
-  font-size: 30px;
+  font-size: 33px;
   line-height: 1.6;
   letter-spacing: 2px;
 }
