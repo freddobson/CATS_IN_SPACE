@@ -208,4 +208,8 @@ canvas {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
   }
+  
+  #bottom-controls {
+    bottom: 10vh;
+  }
 }
