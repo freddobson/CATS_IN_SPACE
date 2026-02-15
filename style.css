@@ -199,12 +199,12 @@ canvas {
 @media (max-width: 768px) {
   html, body {
     align-items: flex-start;
-    padding-top: 5px;
+    padding-top: 2px;
   }
   
   canvas {
     width: auto;
-    height: 65vh;
+    height: 68vh;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
   }
@@ -215,5 +215,11 @@ canvas {
   
   #dpad-buttons {
     margin-left: 30px;
+  }
+  
+  .d-pad-btn {
+    width: 75px;
+    height: 75px;
+    font-size: 32px;
   }
 }
