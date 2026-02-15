@@ -2,10 +2,6 @@ html, body {
   margin: 0;
   background: #000000;
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
 }
 canvas {
   display: block;
@@ -188,8 +184,8 @@ canvas {
 /* Show mobile controls on touch devices / small screens */
 @media (max-width: 768px) {
   canvas {
-    width: 85vw;
-    aspect-ratio: 224 / 288;
+    max-height: 70vh;
+    width: auto;
     image-rendering: pixelated;
   }
 }
