@@ -393,6 +393,35 @@ function updateTitle(dt, state, keys) {
     window.titleMusicStarted = true;
   }
   
+  // Initialize cheat code tracking
+  if (!state.cheatSequence) {
+    state.cheatSequence = [];
+    state.lastCheatKey = null;
+    state.godModeCheat = false;
+    state.godModeBlinkT = 0;
+  }
+  
+  // Cheat code: left-right-left-right-left-right-left-right-left-right (10 inputs)
+  const leftPressed = keys.has('arrowleft');
+  const rightPressed = keys.has('arrowright');
+  
+  if (leftPressed && state.lastCheatKey !== 'left') {
+    state.cheatSequence.push('left');
+    state.lastCheatKey = 'left';
+    checkCheatCode(state);
+  } else if (rightPressed && state.lastCheatKey !== 'right') {
+    state.cheatSequence.push('right');
+    state.lastCheatKey = 'right';
+    checkCheatCode(state);
+  } else if (!leftPressed && !rightPressed) {
+    state.lastCheatKey = null; // Reset when no keys pressed
+  }
+  
+  // Blink timer for god mode message
+  if (state.godModeCheat) {
+    state.godModeBlinkT += dt;
+  }
+  
   // Press ENTER to start
   if (keys.has('enter')) {
     keys.delete('enter');
@@ -400,7 +429,37 @@ function updateTitle(dt, state, keys) {
     window.titleMusicStarted = false;
     window.gameplayMusicStarted = false;
     window.victoryMusicStarted = false;
-    resetGame(state);
+    
+    // Apply god mode cheat if activated
+    if (state.godModeCheat) {
+      const originalGodMode = CFG.godMode;
+      CFG.godMode = true;
+      resetGame(state);
+      CFG.godMode = originalGodMode; // Restore original setting
+    } else {
+      resetGame(state);
+    }
+  }
+}
+
+function checkCheatCode(state) {
+  // Check if last 10 inputs are alternating left-right
+  if (state.cheatSequence.length >= 10) {
+    const last10 = state.cheatSequence.slice(-10);
+    let valid = true;
+    for (let i = 0; i < 10; i++) {
+      const expected = i % 2 === 0 ? 'left' : 'right';
+      if (last10[i] !== expected) {
+        valid = false;
+        break;
+      }
+    }
+    
+    if (valid && !state.godModeCheat) {
+      state.godModeCheat = true;
+      state.godModeBlinkT = 0;
+      playExplosion(); // Play explosive sound
+    }
   }
 }
 

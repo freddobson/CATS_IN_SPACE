@@ -130,6 +130,30 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
 
 function renderTitle(state, ctx, VIEW_W, VIEW_H) {
   // Clean minimal title screen - no border
+  
+  // Show GOD MODE ACTIVATED message if cheat code entered
+  if (state.godModeCheat) {
+    // Blinking effect (every 0.3 seconds)
+    const showMessage = Math.floor(state.godModeBlinkT / 0.3) % 2 === 0;
+    
+    if (showMessage) {
+      // Dark background overlay
+      ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+      
+      // Main message
+      ctx.fillStyle = "#ff0000";
+      ctx.font = "bold 16px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("GOD MODE", VIEW_W / 2, VIEW_H / 2 - 10);
+      ctx.fillText("ACTIVATED!", VIEW_W / 2, VIEW_H / 2 + 10);
+      
+      ctx.fillStyle = "#ffff00";
+      ctx.font = "9px monospace";
+      ctx.fillText("Unlimited power!", VIEW_W / 2, VIEW_H / 2 + 30);
+    }
+  }
+  
   ctx.textAlign = "left";
 }
 
