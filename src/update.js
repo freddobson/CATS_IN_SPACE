@@ -696,19 +696,30 @@ function updatePlaying(dt, state, keys) {
         // Apply powerup effect
         if (p.type === 'treat') {
           state.treatActive = true;
-          state.treatT = CFG.treatDuration;
+          // Don't overwrite Infinity in god mode
+          if (state.treatT !== Infinity) {
+            state.treatT = CFG.treatDuration;
+          }
           playCapture(); // Chomping sound
         } else if (p.type === 'fish') {
           state.fishActive = true;
-          state.fishT = CFG.fishDuration;
+          // Don't overwrite Infinity in god mode
+          if (state.fishT !== Infinity) {
+            state.fishT = CFG.fishDuration;
+          }
           state.player.invulnerable = true;
-          state.player.invulnerableT = CFG.fishDuration;
+          if (state.player.invulnerableT !== Infinity) {
+            state.player.invulnerableT = CFG.fishDuration;
+          }
           playCapture();
         } else if (p.type === 'heart') {
           state.player.lives++;
           // Respawn invulnerability for extra life pickup
           state.player.invulnerable = true;
-          state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
+          // Don't overwrite Infinity in god mode
+          if (state.player.invulnerableT !== Infinity) {
+            state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
+          }
           playCapture();
         }
         
