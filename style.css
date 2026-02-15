@@ -136,7 +136,8 @@ canvas {
 
 #dpad-slider {
     position:relative;
-    left: -20px;
+    top: -10px;
+    left: -10px;
 }
 
 #slider-indicator {
@@ -186,6 +187,11 @@ canvas {
   font-size: 32px;
   background: rgba(255, 209, 74, 0.2);
   margin-right: 40px;
+}
+
+.fire-btn {
+    position:relative;
+    top: -10px;
 }
 
 .fire-btn:active {
