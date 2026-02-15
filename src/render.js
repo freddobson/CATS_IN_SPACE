@@ -303,7 +303,13 @@ function renderGameOver(state, ctx, VIEW_W, VIEW_H) {
   ctx.font = "10px monospace";
   ctx.fillText(`FINAL SCORE: ${state.player.score}`, VIEW_W / 2, VIEW_H / 2);
   ctx.fillText(`WAVE: ${state.wave}`, VIEW_W / 2, VIEW_H / 2 + 15);
-  ctx.fillText("PRESS ENTER TO RETRY", VIEW_W / 2, VIEW_H / 2 + 40);
+  
+  // Show countdown or prompt based on timer
+  if (state.gameOverTimer > 0) {
+    ctx.fillText(`Please wait ${Math.ceil(state.gameOverTimer)}...`, VIEW_W / 2, VIEW_H / 2 + 40);
+  } else {
+    ctx.fillText("PRESS ENTER TO RETRY", VIEW_W / 2, VIEW_H / 2 + 40);
+  }
   ctx.textAlign = "left";
 }
 
@@ -329,6 +335,12 @@ function renderVictory(state, ctx, VIEW_W, VIEW_H) {
   ctx.fillStyle = "#ffffff";
   ctx.font = "10px monospace";
   ctx.fillText(`FINAL SCORE: ${state.player.score}`, VIEW_W / 2, VIEW_H / 2 + 60);
-  ctx.fillText("PRESS ENTER TO PLAY AGAIN", VIEW_W / 2, VIEW_H / 2 + 80);
+  
+  // Show countdown or prompt based on timer
+  if (state.victoryTimer > 0) {
+    ctx.fillText(`Please wait ${Math.ceil(state.victoryTimer)}...`, VIEW_W / 2, VIEW_H / 2 + 80);
+  } else {
+    ctx.fillText("PRESS ENTER TO PLAY AGAIN", VIEW_W / 2, VIEW_H / 2 + 80);
+  }
   ctx.textAlign = "left";
 }

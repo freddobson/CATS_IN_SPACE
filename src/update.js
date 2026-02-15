@@ -418,8 +418,18 @@ function updatePaused(dt, state, keys) {
 }
 
 function updateGameOver(dt, state, keys) {
-  // Press ENTER to restart
-  if (keys.has('enter')) {
+  // Initialize game over timer on first frame
+  if (state.gameOverTimer === undefined) {
+    state.gameOverTimer = 2.0; // Lock game over screen for 2 seconds
+  }
+  
+  // Count down game over timer
+  if (state.gameOverTimer > 0) {
+    state.gameOverTimer -= dt;
+  }
+  
+  // Press ENTER to restart (only after delay)
+  if (keys.has('enter') && state.gameOverTimer <= 0) {
     stopAllMusic();
     window.titleMusicStarted = false;
     window.gameplayMusicStarted = false;
@@ -433,10 +443,16 @@ function updateVictory(dt, state, keys) {
   if (!window.victoryMusicStarted) {
     playEndingMusic();
     window.victoryMusicStarted = true;
+    state.victoryTimer = 10.0; // Lock victory screen for 10 seconds
   }
   
-  // Press ENTER to restart
-  if (keys.has('enter')) {
+  // Count down victory timer
+  if (state.victoryTimer > 0) {
+    state.victoryTimer -= dt;
+  }
+  
+  // Press ENTER to restart (only after 10 second delay)
+  if (keys.has('enter') && state.victoryTimer <= 0) {
     stopAllMusic();
     window.victoryMusicStarted = false;
     window.titleMusicStarted = false;
