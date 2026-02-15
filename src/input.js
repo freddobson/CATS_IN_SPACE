@@ -168,7 +168,10 @@ function setupMobileControls() {
     // Check if touch is in top 75% of canvas
     if (y < rect.height * 0.75) {
       keys.add('escape');
-      unlockAudio();
+      if (!audioUnlocked) {
+        unlockAudio();
+        audioUnlocked = true;
+      }
       pauseCooldown = true;
       // Remove escape key after a brief moment (simulate key press)
       setTimeout(() => {
@@ -183,7 +186,10 @@ function setupMobileControls() {
   
   // Desktop click support for pause
   canvas.addEventListener('click', (e) => {
-    unlockAudio();
+    if (!audioUnlocked) {
+      unlockAudio();
+      audioUnlocked = true;
+    }
     if (pauseCooldown) return;
     
     const rect = canvas.getBoundingClientRect();
