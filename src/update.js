@@ -495,7 +495,14 @@ function updateGameOver(dt, state, keys) {
     window.titleMusicStarted = false;
     window.gameplayMusicStarted = false;
     window.victoryMusicStarted = false;
-    resetGame(state);
+    
+    // Return to title screen and reset cheat code state
+    state.gameState = GAME_STATE.TITLE;
+    state.gameOverTimer = undefined;
+    state.godModeCheat = false;
+    state.godModeBlinkT = 0;
+    state.cheatSequence = [];
+    state.lastCheatKey = null;
   }
 }
 
@@ -518,7 +525,14 @@ function updateVictory(dt, state, keys) {
     window.victoryMusicStarted = false;
     window.titleMusicStarted = false;
     window.gameplayMusicStarted = false;
-    resetGame(state);
+    
+    // Return to title screen and reset cheat code state
+    state.gameState = GAME_STATE.TITLE;
+    state.victoryTimer = undefined;
+    state.godModeCheat = false;
+    state.godModeBlinkT = 0;
+    state.cheatSequence = [];
+    state.lastCheatKey = null;
   }
 }
 
