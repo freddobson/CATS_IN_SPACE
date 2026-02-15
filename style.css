@@ -24,7 +24,7 @@ canvas {
   perspective: 600px;
   opacity: 0;
   animation: fadein 1s ease-in forwards;
-  z-index: 1000;
+  z-index: 10;
   pointer-events: none;
 }
 
