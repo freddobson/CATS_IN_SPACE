@@ -634,7 +634,10 @@ function updatePlaying(dt, state, keys) {
   if (state.player.invulnerable) {
     state.player.invulnerableT -= dt;
     if (state.player.invulnerableT <= 0) {
-      state.player.invulnerable = false;
+      // Don't disable invulnerability in god mode
+      if (!state.godModeActive) {
+        state.player.invulnerable = false;
+      }
     }
   }
 
@@ -736,11 +739,21 @@ function updatePlaying(dt, state, keys) {
   // Update powerup timers
   if (state.treatActive) {
     state.treatT -= dt;
-    if (state.treatT <= 0) state.treatActive = false;
+    if (state.treatT <= 0) {
+      // Don't disable treat in god mode
+      if (!state.godModeActive) {
+        state.treatActive = false;
+      }
+    }
   }
   if (state.fishActive) {
     state.fishT -= dt;
-    if (state.fishT <= 0) state.fishActive = false;
+    if (state.fishT <= 0) {
+      // Don't disable fish in god mode
+      if (!state.godModeActive) {
+        state.fishActive = false;
+      }
+    }
   }
 
   // enemies
@@ -955,7 +968,10 @@ function updatePlaying(dt, state, keys) {
       
       // In dual mode, lose dual instead of life
       if (state.player.dual) {
-        state.player.dual = false;
+        // Don't lose dual in god mode
+        if (!state.godModeActive) {
+          state.player.dual = false;
+        }
         playHit();
         boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
       } else {
@@ -1044,7 +1060,10 @@ function updatePlaying(dt, state, keys) {
         
         // In dual mode, lose dual instead of life
         if (state.player.dual) {
-          state.player.dual = false;
+          // Don't lose dual in god mode
+          if (!state.godModeActive) {
+            state.player.dual = false;
+          }
           playHit();
           boom(state, state.player.x + state.player.w/2, state.player.y + state.player.h/2, 18);
         } else {
@@ -1100,7 +1119,10 @@ function updatePlaying(dt, state, keys) {
     if (!captor) {
       if (state.captorId === b.enemyId) {
         state.player.captured = false;
-        state.player.invulnerable = false;
+        // Don't disable invulnerability in god mode
+        if (!state.godModeActive) {
+          state.player.invulnerable = false;
+        }
         state.captorId = null;
       }
       state.beams.splice(i, 1);
@@ -1200,7 +1222,10 @@ function updatePlaying(dt, state, keys) {
             state.player.x = state.VIEW_W / 2 - 12;
             state.player.y = state.VIEW_H - 28;
             state.player.captured = false;
-            state.player.invulnerable = false;
+            // Don't disable invulnerability in god mode
+            if (!state.godModeActive) {
+              state.player.invulnerable = false;
+            }
             state.player.captureT = 0;
             state.player.fireCd = FIRE_COOLDOWN; // brief cooldown on respawn
           }
