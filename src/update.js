@@ -491,6 +491,7 @@ function updateGameOver(dt, state, keys) {
   
   // Press ENTER to restart (only after delay)
   if (keys.has('enter') && state.gameOverTimer <= 0) {
+    keys.delete('enter'); // Prevent immediate restart on title screen
     stopAllMusic();
     window.titleMusicStarted = false;
     window.gameplayMusicStarted = false;
@@ -521,6 +522,7 @@ function updateVictory(dt, state, keys) {
   
   // Press ENTER to restart (only after 10 second delay)
   if (keys.has('enter') && state.victoryTimer <= 0) {
+    keys.delete('enter'); // Prevent immediate restart on title screen
     stopAllMusic();
     window.victoryMusicStarted = false;
     window.titleMusicStarted = false;
