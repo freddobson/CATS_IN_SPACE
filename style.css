@@ -222,7 +222,7 @@ canvas {
   }
   
   .crawl {
-    animation: crawl 25s ease-in-out forwards;
+    animation: crawl 40s ease-in-out forwards;
   }
 }
 
