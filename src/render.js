@@ -336,10 +336,8 @@ function renderVictory(state, ctx, VIEW_W, VIEW_H) {
   ctx.font = "10px monospace";
   ctx.fillText(`FINAL SCORE: ${state.player.score}`, VIEW_W / 2, VIEW_H / 2 + 60);
   
-  // Show countdown or prompt based on timer
-  if (state.victoryTimer > 0) {
-    ctx.fillText(`Please wait ${Math.ceil(state.victoryTimer)}...`, VIEW_W / 2, VIEW_H / 2 + 80);
-  } else {
+  // Only show prompt when ready
+  if (state.victoryTimer <= 0) {
     ctx.fillText("PRESS ENTER TO PLAY AGAIN", VIEW_W / 2, VIEW_H / 2 + 80);
   }
   ctx.textAlign = "left";

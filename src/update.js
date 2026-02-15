@@ -420,7 +420,7 @@ function updatePaused(dt, state, keys) {
 function updateGameOver(dt, state, keys) {
   // Initialize game over timer on first frame
   if (state.gameOverTimer === undefined) {
-    state.gameOverTimer = 2.0; // Lock game over screen for 2 seconds
+    state.gameOverTimer = 3.0; // Lock game over screen for 3 seconds
   }
   
   // Count down game over timer
