@@ -41,8 +41,8 @@ function setupMobileControls() {
     const centerX = rect.width / 2;
     const deadzone = rect.width * 0.2; // 20% deadzone in center
     
-    // Update indicator position (clamped to slider bounds)
-    const indicatorX = Math.max(30, Math.min(rect.width - 30, x));
+    // Update indicator position (allow some overhang on both sides)
+    const indicatorX = Math.max(0, Math.min(rect.width, x));
     sliderIndicator.style.left = `${indicatorX}px`;
     sliderIndicator.style.transform = 'translateX(0)';
     
