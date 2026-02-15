@@ -211,6 +211,19 @@ canvas {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
   }
+  
+  /* Desktop crawl positioning - centered on screen */
+  #crawl-container {
+    top: 15%;
+    bottom: auto;
+    height: 600px;
+    max-height: 600px;
+    margin-top: -200px;
+  }
+  
+  .crawl {
+    animation: crawl 25s ease-in-out forwards;
+  }
 }
 
 /* Show mobile controls on touch devices / small screens */
