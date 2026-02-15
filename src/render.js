@@ -218,13 +218,13 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
     const iconY = p.y | 0;
     if (p.type === 'treat') {
       ctx.fillStyle = "#FFB366";
-      ctx.fillRect(iconX - 2, iconY - 2, 4, 4);
+      ctx.fillRect(iconX - 8, iconY - 8, 16, 16);
     } else if (p.type === 'fish') {
       ctx.fillStyle = "#FF99FF";
-      ctx.fillRect(iconX - 2, iconY - 2, 4, 4);
+      ctx.fillRect(iconX - 8, iconY - 8, 16, 16);
     } else if (p.type === 'heart') {
       ctx.fillStyle = "#FF4466";
-      ctx.fillRect(iconX - 2, iconY - 2, 4, 4);
+      ctx.fillRect(iconX - 8, iconY - 8, 16, 16);
     }
   }
 
