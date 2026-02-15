@@ -64,7 +64,7 @@ canvas {
 
 @keyframes crawl {
   0% {
-    transform: rotateX(70deg) translateZ(0) translateY(800px);
+    transform: rotateX(70deg) translateZ(0) translateY(1200px);
     opacity: 1;
   }
   98% {
