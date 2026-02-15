@@ -24,101 +24,109 @@ export function isPressed(key) {
 
 // Mobile button controls
 function setupMobileControls() {
-  const leftBtn = document.getElementById('left-btn');
-  const rightBtn = document.getElementById('right-btn');
+  const dpadSlider = document.getElementById('dpad-slider');
+  const sliderIndicator = document.getElementById('slider-indicator');
   const fireBtn = document.getElementById('fire-btn');
   const canvas = document.getElementById('game');
   
-  if (!leftBtn) return; // No mobile controls on this page
+  if (!dpadSlider) return; // No mobile controls on this page
   
-  // Track active touch for d-pad sliding
-  let dpadTouchId = null;
+  // Track active touch for slider
+  let sliderTouchId = null;
   
-  // Helper to get which button a touch is over
-  function getButtonAtPoint(x, y) {
-    const leftRect = leftBtn.getBoundingClientRect();
-    const rightRect = rightBtn.getBoundingClientRect();
+  // Update slider position and movement keys
+  function updateSlider(clientX) {
+    const rect = dpadSlider.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const centerX = rect.width / 2;
+    const deadzone = rect.width * 0.2; // 20% deadzone in center
     
-    if (x >= leftRect.left && x <= leftRect.right && y >= leftRect.top && y <= leftRect.bottom) {
-      return 'left';
-    }
-    if (x >= rightRect.left && x <= rightRect.right && y >= rightRect.top && y <= rightRect.bottom) {
-      return 'right';
-    }
-    return null;
-  }
-  
-  // Update keys based on button
-  function updateDpadKeys(button) {
+    // Update indicator position (clamped to slider bounds)
+    const indicatorX = Math.max(30, Math.min(rect.width - 30, x));
+    sliderIndicator.style.left = `${indicatorX}px`;
+    sliderIndicator.style.transform = 'translateX(0)';
+    
+    // Clear both keys first
     keys.delete('arrowleft');
     keys.delete('arrowright');
     
-    if (button === 'left') {
+    // Determine direction based on position relative to center
+    if (x < centerX - deadzone) {
       keys.add('arrowleft');
-    } else if (button === 'right') {
+    } else if (x > centerX + deadzone) {
       keys.add('arrowright');
     }
   }
   
-  // D-pad touch handlers (support sliding)
-  const handleDpadTouchStart = (e) => {
+  // Reset slider to center
+  function resetSlider() {
+    sliderIndicator.style.left = '50%';
+    sliderIndicator.style.transform = 'translateX(-50%)';
+    keys.delete('arrowleft');
+    keys.delete('arrowright');
+    dpadSlider.classList.remove('active');
+  }
+  
+  // Slider touch handlers
+  dpadSlider.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    if (dpadTouchId === null && e.changedTouches.length > 0) {
+    if (sliderTouchId === null && e.changedTouches.length > 0) {
       const touch = e.changedTouches[0];
-      dpadTouchId = touch.identifier;
-      const button = getButtonAtPoint(touch.clientX, touch.clientY);
-      updateDpadKeys(button);
+      sliderTouchId = touch.identifier;
+      dpadSlider.classList.add('active');
+      updateSlider(touch.clientX);
       unlockAudio();
     }
-  };
+  });
   
-  const handleDpadTouchMove = (e) => {
+  dpadSlider.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    if (dpadTouchId !== null) {
+    if (sliderTouchId !== null) {
       for (let touch of e.changedTouches) {
-        if (touch.identifier === dpadTouchId) {
-          const button = getButtonAtPoint(touch.clientX, touch.clientY);
-          updateDpadKeys(button);
+        if (touch.identifier === sliderTouchId) {
+          updateSlider(touch.clientX);
           break;
         }
       }
     }
-  };
+  });
   
-  const handleDpadTouchEnd = (e) => {
+  const handleSliderTouchEnd = (e) => {
     e.preventDefault();
     for (let touch of e.changedTouches) {
-      if (touch.identifier === dpadTouchId) {
-        dpadTouchId = null;
-        keys.delete('arrowleft');
-        keys.delete('arrowright');
+      if (touch.identifier === sliderTouchId) {
+        sliderTouchId = null;
+        resetSlider();
         break;
       }
     }
   };
   
-  leftBtn.addEventListener('touchstart', handleDpadTouchStart);
-  leftBtn.addEventListener('touchmove', handleDpadTouchMove);
-  leftBtn.addEventListener('touchend', handleDpadTouchEnd);
-  leftBtn.addEventListener('touchcancel', handleDpadTouchEnd);
+  dpadSlider.addEventListener('touchend', handleSliderTouchEnd);
+  dpadSlider.addEventListener('touchcancel', handleSliderTouchEnd);
   
-  rightBtn.addEventListener('touchstart', handleDpadTouchStart);
-  rightBtn.addEventListener('touchmove', handleDpadTouchMove);
-  rightBtn.addEventListener('touchend', handleDpadTouchEnd);
-  rightBtn.addEventListener('touchcancel', handleDpadTouchEnd);
+  // Mouse support for slider (desktop testing)
+  let mouseDown = false;
   
-  // Mouse support for d-pad (desktop testing)
-  leftBtn.addEventListener('mousedown', () => {
-    keys.add('arrowleft');
+  dpadSlider.addEventListener('mousedown', (e) => {
+    mouseDown = true;
+    dpadSlider.classList.add('active');
+    updateSlider(e.clientX);
     unlockAudio();
   });
-  leftBtn.addEventListener('mouseup', () => keys.delete('arrowleft'));
   
-  rightBtn.addEventListener('mousedown', () => {
-    keys.add('arrowright');
-    unlockAudio();
+  document.addEventListener('mousemove', (e) => {
+    if (mouseDown) {
+      updateSlider(e.clientX);
+    }
   });
-  rightBtn.addEventListener('mouseup', () => keys.delete('arrowright'));
+  
+  document.addEventListener('mouseup', () => {
+    if (mouseDown) {
+      mouseDown = false;
+      resetSlider();
+    }
+  });
   
   // Fire button (also acts as ENTER for start/restart)
   fireBtn.addEventListener('touchstart', (e) => {

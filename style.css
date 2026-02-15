@@ -120,10 +120,35 @@ canvas {
   box-sizing: border-box;
 }
 
-#dpad-buttons {
+#dpad-slider {
+  width: 200px;
+  height: 90px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #ffd14a;
+  border-radius: 45px;
+  position: relative;
+  margin-left: 30px;
   display: flex;
-  gap: 8px;
   align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+#slider-indicator {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 209, 74, 0.3);
+  border: 2px solid #ffd14a;
+  border-radius: 50%;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: left 0.1s ease-out, background 0.1s;
+  pointer-events: none;
+}
+
+#dpad-slider.active #slider-indicator {
+  background: rgba(255, 209, 74, 0.5);
 }
 
 .mobile-btn {
@@ -155,17 +180,11 @@ canvas {
   height: 80px;
   font-size: 32px;
   background: rgba(255, 209, 74, 0.2);
-  margin-right: 60px;
+  margin-right: 40px;
 }
 
 .fire-btn:active {
   background: rgba(255, 209, 74, 0.5);
-}
-
-.d-pad-btn {
-  width: 65px;
-  height: 65px;
-  font-size: 28px;
 }
 
 /* Hide mobile controls on desktop by default */
@@ -200,19 +219,16 @@ canvas {
     bottom: 3vh;
   }
   
-  #dpad-buttons {
-    margin-left: 30px;
-  }
-  
-  .d-pad-btn {
-    width: 98px;
+  #dpad-slider {
+    width: 240px;
     height: 98px;
-    font-size: 42px;
+    margin-left: 30px;
   }
   
   .fire-btn {
     width: 104px;
     height: 104px;
     font-size: 42px;
+    margin-right: 20px;
   }
 }
