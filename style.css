@@ -60,7 +60,7 @@ canvas {
     transform: rotateX(70deg) translateZ(0) translateY(400px);
     opacity: 1;
   }
-  90% {
+  95% {
     opacity: 1;
   }
   100% {
