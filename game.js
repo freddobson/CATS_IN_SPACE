@@ -8,16 +8,13 @@ import { loadAssets } from './src/assets.js';
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  ctx.imageSmoothingEnabled = false;
-}
-window.addEventListener('resize', resize);
-resize();
-
 const VIEW_W = CFG.viewW || 224;
 const VIEW_H = CFG.viewH || 288;
+
+// Set canvas to game's internal resolution, let CSS scale it
+canvas.width = VIEW_W;
+canvas.height = VIEW_H;
+ctx.imageSmoothingEnabled = false;
 
 async function start() {
   const state = createState(VIEW_W, VIEW_H);

@@ -3,6 +3,10 @@ html, body {
   background: #000000;
   overflow: hidden;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
 }
 canvas {
   display: inline-block;
@@ -180,13 +184,21 @@ canvas {
   #mobile-controls {
     display: none;
   }
+  
+  canvas {
+    width: auto;
+    height: 85vh;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
 }
 
 /* Show mobile controls on touch devices / small screens */
 @media (max-width: 768px) {
   canvas {
-    max-height: 90vh;
     width: auto;
+    height: 85vh;
     image-rendering: pixelated;
+    image-rendering: crisp-edges;
   }
 }
