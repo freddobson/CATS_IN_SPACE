@@ -9,12 +9,12 @@ canvas {
 /* Star Wars crawl effect */
 #crawl-container {
   position: fixed;
-  top: 50%;
+  top: 40%;
   left: 50%;
   width: 400px;
   height: 600px;
   margin-left: -200px;
-  margin-top: -300px;
+  margin-top: -200px;
   perspective: 600px;
   opacity: 0;
   animation: fadein 1s ease-in forwards;

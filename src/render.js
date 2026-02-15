@@ -126,32 +126,101 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
 }
 
 function renderTitle(state, ctx, VIEW_W, VIEW_H) {
-  // Title
-  ctx.fillStyle = "#ffd14a";
-  ctx.font = "bold 16px monospace";
-  ctx.textAlign = "center";
-  ctx.fillText(CFG.gameTitle, VIEW_W / 2, 60);
-  ctx.fillText(CFG.gameSubtitle, VIEW_W / 2, 78);
-
-  // Story text
-  ctx.fillStyle = "#7CFF6B";
-  ctx.font = "9px monospace";
-  let yPos = 110;
-  for (const line of CFG.gameStory) {
-    ctx.fillText(line, VIEW_W / 2, yPos);
-    yPos += 12;
+  // Draw decorative border with alternating Gizmo and powerups
+  const assets = state.assets || {};
+  const borderSpacing = 20;
+  
+  // Top border
+  for (let x = 0; x < VIEW_W; x += borderSpacing) {
+    if ((x / borderSpacing) % 3 === 0) {
+      // Draw Gizmo
+      if (assets.gizmo) {
+        ctx.drawImage(assets.gizmo, x, 2, 12, 10);
+      } else {
+        ctx.fillStyle = "#7CFF6B";
+        ctx.fillRect(x + 2, 3, 8, 8);
+      }
+    } else if ((x / borderSpacing) % 3 === 1) {
+      // Draw treat
+      if (assets.treat) {
+        ctx.drawImage(assets.treat, x, 2, 12, 10);
+      } else {
+        ctx.fillStyle = "#FFB366";
+        ctx.fillRect(x + 4, 4, 4, 4);
+      }
+    } else {
+      // Draw fish
+      if (assets.fish) {
+        ctx.drawImage(assets.fish, x, 2, 12, 10);
+      } else {
+        ctx.fillStyle = "#FF99FF";
+        ctx.fillRect(x + 4, 4, 4, 4);
+      }
+    }
+  }
+  
+  // Bottom border
+  for (let x = 0; x < VIEW_W; x += borderSpacing) {
+    if ((x / borderSpacing) % 3 === 0) {
+      // Draw Gizmo
+      if (assets.gizmo) {
+        ctx.drawImage(assets.gizmo, x, VIEW_H - 12, 12, 10);
+      } else {
+        ctx.fillStyle = "#7CFF6B";
+        ctx.fillRect(x + 2, VIEW_H - 11, 8, 8);
+      }
+    } else if ((x / borderSpacing) % 3 === 1) {
+      // Draw treat
+      if (assets.treat) {
+        ctx.drawImage(assets.treat, x, VIEW_H - 12, 12, 10);
+      } else {
+        ctx.fillStyle = "#FFB366";
+        ctx.fillRect(x + 4, VIEW_H - 10, 4, 4);
+      }
+    } else {
+      // Draw fish
+      if (assets.fish) {
+        ctx.drawImage(assets.fish, x, VIEW_H - 12, 12, 10);
+      } else {
+        ctx.fillStyle = "#FF99FF";
+        ctx.fillRect(x + 4, VIEW_H - 10, 4, 4);
+      }
+    }
+  }
+  
+  // Side borders (left and right)
+  for (let y = 14; y < VIEW_H - 12; y += borderSpacing) {
+    // Left border
+    if ((y / borderSpacing) % 3 === 0 && assets.gizmo) {
+      ctx.drawImage(assets.gizmo, 2, y, 12, 10);
+    } else if ((y / borderSpacing) % 3 === 1 && assets.treat) {
+      ctx.drawImage(assets.treat, 2, y, 12, 10);
+    } else if (assets.fish) {
+      ctx.drawImage(assets.fish, 2, y, 12, 10);
+    }
+    
+    // Right border
+    if ((y / borderSpacing) % 3 === 0 && assets.gizmo) {
+      ctx.drawImage(assets.gizmo, VIEW_W - 14, y, 12, 10);
+    } else if ((y / borderSpacing) % 3 === 1 && assets.treat) {
+      ctx.drawImage(assets.treat, VIEW_W - 14, y, 12, 10);
+    } else if (assets.fish) {
+      ctx.drawImage(assets.fish, VIEW_W - 14, y, 12, 10);
+    }
   }
 
   // Instructions
   ctx.fillStyle = "#ffffff";
   ctx.font = "10px monospace";
-  ctx.fillText("PRESS ENTER TO START", VIEW_W / 2, VIEW_H - 40);
+  ctx.textAlign = "center";
+  ctx.fillText("PRESS ENTER TO START", VIEW_W / 2, VIEW_H - 20);
 
   // Controls
   ctx.fillStyle = "#6db6ff";
   ctx.font = "8px monospace";
-  ctx.fillText("ARROW KEYS / WASD - MOVE", VIEW_W / 2, VIEW_H - 22);
-  ctx.fillText("SPACE - FIRE", VIEW_W / 2, VIEW_H - 12);
+  ctx.fillText("ARROW KEYS / WASD - MOVE", VIEW_W / 2, VIEW_H - 8);
+  ctx.fillStyle = "#7CFF6B";
+  ctx.fillText("SPACE - FIRE    ESC - PAUSE", VIEW_W / 2, VIEW_H - 1);
 
   ctx.textAlign = "left";
 }
