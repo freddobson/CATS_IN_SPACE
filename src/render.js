@@ -92,12 +92,15 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
   ctx.fillStyle = "#ffffff";
   for (const s of state.stars) ctx.fillRect(s.x | 0, s.y | 0, s.r, s.r);
 
-  // Show/hide crawl based on game state
+  // Show/hide crawl and press-enter prompt based on game state
   const crawlContainer = document.getElementById('crawl-container');
-  if (state.gameState === GAME_STATE.TITLE && crawlContainer) {
-    crawlContainer.style.display = 'block';
-  } else if (crawlContainer) {
-    crawlContainer.style.display = 'none';
+  const pressEnter = document.getElementById('press-enter');
+  if (state.gameState === GAME_STATE.TITLE) {
+    if (crawlContainer) crawlContainer.style.display = 'block';
+    if (pressEnter) pressEnter.style.display = 'block';
+  } else {
+    if (crawlContainer) crawlContainer.style.display = 'none';
+    if (pressEnter) pressEnter.style.display = 'none';
   }
 
   // Render based on game state
@@ -208,13 +211,7 @@ function renderTitle(state, ctx, VIEW_W, VIEW_H) {
       ctx.drawImage(assets.fish, VIEW_W - 14, y, 12, 10);
     }
   }
-
-  // Instructions
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "10px monospace";
-  ctx.textAlign = "center";
-  ctx.fillText("PRESS ENTER TO START", VIEW_W / 2, VIEW_H - 20);
-
+  
   ctx.textAlign = "left";
 }
 
