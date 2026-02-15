@@ -27,7 +27,7 @@ function setupMobileControls() {
   const leftBtn = document.getElementById('left-btn');
   const rightBtn = document.getElementById('right-btn');
   const fireBtn = document.getElementById('fire-btn');
-  const pauseBtn = document.getElementById('pause-btn');
+  const canvas = document.getElementById('game');
   
   if (!leftBtn) return; // No mobile controls on this page
   
@@ -142,21 +142,32 @@ function setupMobileControls() {
     keys.delete('enter');
   });
   
-  // Pause button (ESC key)
-  pauseBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    keys.add('escape');
-    unlockAudio();
+  // Canvas tap in top 3/4 to pause
+  canvas.addEventListener('touchstart', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const y = touch.clientY - rect.top;
+    
+    // Check if touch is in top 75% of canvas
+    if (y < rect.height * 0.75) {
+      keys.add('escape');
+      unlockAudio();
+      // Remove escape key after a brief moment (simulate key press)
+      setTimeout(() => keys.delete('escape'), 100);
+    }
   });
-  pauseBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    keys.delete('escape');
+  
+  // Desktop click support for pause
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    
+    // Check if click is in top 75% of canvas
+    if (y < rect.height * 0.75) {
+      keys.add('escape');
+      setTimeout(() => keys.delete('escape'), 100);
+    }
   });
-  pauseBtn.addEventListener('mousedown', () => {
-    keys.add('escape');
-    unlockAudio();
-  });
-  pauseBtn.addEventListener('mouseup', () => keys.delete('escape'));
 }
 
 // Initialize mobile controls when DOM is ready
