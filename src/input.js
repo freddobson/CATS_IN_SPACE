@@ -143,7 +143,11 @@ function setupMobileControls() {
   });
   
   // Canvas tap in top 3/4 to pause
+  let pauseCooldown = false;
+  
   canvas.addEventListener('touchstart', (e) => {
+    if (pauseCooldown) return;
+    
     const rect = canvas.getBoundingClientRect();
     const touch = e.touches[0];
     const y = touch.clientY - rect.top;
@@ -152,20 +156,35 @@ function setupMobileControls() {
     if (y < rect.height * 0.75) {
       keys.add('escape');
       unlockAudio();
+      pauseCooldown = true;
       // Remove escape key after a brief moment (simulate key press)
-      setTimeout(() => keys.delete('escape'), 100);
+      setTimeout(() => {
+        keys.delete('escape');
+        // Reset cooldown after a longer delay to prevent rapid toggling
+        setTimeout(() => {
+          pauseCooldown = false;
+        }, 300);
+      }, 50);
     }
   });
   
   // Desktop click support for pause
   canvas.addEventListener('click', (e) => {
+    if (pauseCooldown) return;
+    
     const rect = canvas.getBoundingClientRect();
     const y = e.clientY - rect.top;
     
     // Check if click is in top 75% of canvas
     if (y < rect.height * 0.75) {
       keys.add('escape');
-      setTimeout(() => keys.delete('escape'), 100);
+      pauseCooldown = true;
+      setTimeout(() => {
+        keys.delete('escape');
+        setTimeout(() => {
+          pauseCooldown = false;
+        }, 300);
+      }, 50);
     }
   });
 }
