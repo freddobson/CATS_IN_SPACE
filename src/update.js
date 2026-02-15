@@ -793,8 +793,8 @@ function updatePlaying(dt, state, keys) {
         }
       }
 
-      // Boss beam attack (capture) - only if no current captor (always active, even if enemiesDontFire)
-      if (!state.gameOver && state.player.alive && e.canBeam && !state.captorId && Math.random() < (CFG.beamChance || 0) * dt * 60) {
+      // Boss beam attack (capture) - only if no current captor and player doesn't have dual mode (always active, even if enemiesDontFire)
+      if (!state.gameOver && state.player.alive && e.canBeam && !state.captorId && !state.player.dual && Math.random() < (CFG.beamChance || 0) * dt * 60) {
           // reserve this captor immediately to avoid race with other bosses
           const beamId = Math.random().toString(36).slice(2);
           state.captorId = e.id;
@@ -841,7 +841,7 @@ function updatePlaying(dt, state, keys) {
   for (const e of state.enemies) {
     if (e.mode === 'spawning') continue;
     
-    if (!state.gameOver && state.player.alive && !state.player.hitThisFrame && aabb(e, state.player)) {
+    if (!state.gameOver && state.player.alive && !state.player.hitThisFrame && !state.player.invulnerable && aabb(e, state.player)) {
       // damage player, spawn explosion, and remove the enemy
       state.player.hitThisFrame = true;
       state.player.flash = 0.25;
