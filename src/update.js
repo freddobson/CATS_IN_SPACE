@@ -78,6 +78,7 @@ export function createState(VIEW_W, VIEW_H) {
     gameOver: false,
     respawnDelay: 0, // Delay before respawning after death
     waveStartDelay: 0, // Delay at start of wave showing "WAVE X"
+    waveReadyToSpawn: false, // Flag to spawn wave after delay
     // powerup timers
     treatActive: false,
     treatT: 0,
@@ -341,6 +342,7 @@ export function resetGame(state) {
   state.wave = 1;
   state.respawnDelay = 0;
   state.waveStartDelay = 0;
+  state.waveReadyToSpawn = false;
 
   spawnWave(state);
 }
@@ -551,8 +553,11 @@ function updatePlaying(dt, state, keys) {
   // Handle wave start delay (countdown before wave begins)
   if (state.waveStartDelay > 0) {
     state.waveStartDelay -= dt;
-    // Pause most game logic during wave start
-    return;
+    if (state.waveStartDelay <= 0 && state.waveReadyToSpawn) {
+      // Spawn the wave after delay
+      spawnWave(state);
+      state.waveReadyToSpawn = false;
+    }
   }
   
   // Handle respawn delay (countdown before player respawns)
@@ -1318,17 +1323,15 @@ function updatePlaying(dt, state, keys) {
 
   // wave refill if empty
   if (!state.gameOver && state.enemies.length === 0) {
-    // Don't increment wave past 10 after victory
-    if (state.wave < CFG.wavesForVictory) {
-      state.wave++;
-    }
+    state.wave++;
     // Check for victory condition
     if (state.wave > CFG.wavesForVictory) {
       state.gameState = GAME_STATE.VICTORY;
       playLevelComplete();
     } else {
-      state.waveStartDelay = 3.0; // 3 second delay before wave starts
-      spawnWave(state);
+      // Set delay before spawning next wave
+      state.waveStartDelay = 3.0;
+      state.waveReadyToSpawn = true;
     }
   }
 }

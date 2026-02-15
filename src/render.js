@@ -291,11 +291,11 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
     ctx.fillRect(iconX + 1, 10, 3, 1);
   }
 
-  // Wave display (center top)
+  // Wave display (center top) - cap display at 10
   ctx.fillStyle = "#6db6ff";
   ctx.font = "8px monospace";
   ctx.textAlign = "center";
-  ctx.fillText(`WAVE ${state.wave}`, VIEW_W / 2, 12);
+  ctx.fillText(`WAVE ${Math.min(state.wave, 10)}`, VIEW_W / 2, 12);
   ctx.textAlign = "left";
   
   // Wave start announcement overlay
@@ -304,13 +304,13 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     
-    // Blinking wave announcement
+    // Blinking wave announcement - cap display at 10
     const showMessage = Math.floor(state.waveStartDelay / 0.3) % 2 === 0;
     if (showMessage) {
       ctx.fillStyle = "#ffd14a";
       ctx.font = "bold 20px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(`WAVE ${state.wave}`, VIEW_W / 2, VIEW_H / 2);
+      ctx.fillText(`WAVE ${Math.min(state.wave, 10)}`, VIEW_W / 2, VIEW_H / 2);
     }
     ctx.textAlign = "left";
   }
@@ -343,7 +343,7 @@ function renderGameOver(state, ctx, VIEW_W, VIEW_H) {
   ctx.fillStyle = "#ffffff";
   ctx.font = "10px monospace";
   ctx.fillText(`FINAL SCORE: ${state.player.score}`, VIEW_W / 2, VIEW_H / 2);
-  ctx.fillText(`WAVE: ${state.wave}`, VIEW_W / 2, VIEW_H / 2 + 15);
+  ctx.fillText(`WAVE: ${Math.min(state.wave, 10)}`, VIEW_W / 2, VIEW_H / 2 + 15);
   
   // Show countdown or prompt based on timer
   if (state.gameOverTimer > 0) {
