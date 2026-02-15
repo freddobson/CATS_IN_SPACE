@@ -1266,16 +1266,21 @@ function updatePlaying(dt, state, keys) {
             state.player.alive = false;
             state.gameOver = true;
           } else {
-            // Respawn active player at bottom
-            state.player.x = state.VIEW_W / 2 - 12;
-            state.player.y = state.VIEW_H - 28;
-            state.player.captured = false;
-            // Don't disable invulnerability in god mode
-            if (!state.godModeActive) {
-              state.player.invulnerable = false;
+            // Player still has lives - hide player and set respawn delay
+            // Reset all enemies to formation
+            const sway = Math.sin(state.formation.swayT * Math.PI * 2) * state.formation.swayAmp;
+            for (const e of state.enemies) {
+              e.mode = 'formation';
+              e.segIdx = e.path.length - 1;
+              e.x = e.slotX - e.w/2 + sway;
+              e.y = e.slotY;
+              e.beaming = false;
             }
+            // Hide player during respawn delay
+            state.player.alive = false;
+            state.respawnDelay = CFG.respawnDelay;
+            state.player.captured = false;
             state.player.captureT = 0;
-            state.player.fireCd = FIRE_COOLDOWN; // brief cooldown on respawn
           }
           
           b.phase = 'latched';
