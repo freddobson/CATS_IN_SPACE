@@ -133,6 +133,15 @@ export function stopAllMusic() {
     o.stop(now + 0.1);
   }
   musicOscillators = [];
+  // Clear music intervals
+  if (window.menuMusicInterval) {
+    clearInterval(window.menuMusicInterval);
+    window.menuMusicInterval = null;
+  }
+  if (window.gameMusicInterval) {
+    clearInterval(window.gameMusicInterval);
+    window.gameMusicInterval = null;
+  }
 }
 
 function playMusicNote(freq, duration) {
