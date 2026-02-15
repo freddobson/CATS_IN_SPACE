@@ -134,6 +134,11 @@ canvas {
   touch-action: manipulation;
 }
 
+#dpad-slider {
+    position:relative;
+    left: -20px;
+}
+
 #slider-indicator {
   width: 60px;
   height: 60px;
