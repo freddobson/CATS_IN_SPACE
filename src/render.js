@@ -183,6 +183,15 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
   // player
   if (state.player.alive) {
     ctx.fillStyle = state.player.flash > 0 ? "#ffffff" : "#7CFF6B";
+    
+    // Add flicker effect during invulnerability (50ms on/off cycle)
+    if (state.player.invulnerable) {
+      const flickerPhase = Math.floor((state.player.invulnerableT * 10) % 2); // 50ms per phase
+      if (flickerPhase === 0) {
+        ctx.globalAlpha = 0.3; // Semi-transparent during flicker
+      }
+    }
+    
     if (state.player.dual) {
       // Draw two ships side by side for dual mode
       const cx = state.player.x + state.player.w / 2;
@@ -191,6 +200,8 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
     } else {
       drawShip(ctx, state, state.player.x | 0, state.player.y | 0);
     }
+    
+    ctx.globalAlpha = 1.0;
   }
 
   // rescue ship (falling captured ship)

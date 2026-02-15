@@ -22,6 +22,9 @@ export const CFG = {
   playerSpeed: 96,
   fireCooldown: 0.243,
   lives: 3,
+  respawnInvulnerabilityDuration: 1.5, // seconds of invulnerability after respawn
+  respawnDelay: 1.5, // seconds before respawning
+  godMode: false, // Start with dual + permanent powerups
 
   // bullets (speeds reduced 33%)
   bulletSpeed: 174,
@@ -78,7 +81,7 @@ export const CFG = {
   heartDropChance: 0.01, // 1% chance
   
   powerupDriftSpeed: 40, // pixels/sec downward
-  powerupCatchRadius: 14,
+  powerupDriftTowardsMagnitude: 10, // slight drift towards player (50% of away-drift)
 
   // game progression
   wavesForVictory: 10,

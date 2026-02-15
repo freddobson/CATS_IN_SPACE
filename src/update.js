@@ -41,6 +41,8 @@ export function createState(VIEW_W, VIEW_H) {
     captured: false,
     captureT: 0,
     dual: false, // Dual fighter mode after rescue
+    invulnerable: false, // Invulnerability timer after respawn
+    invulnerableT: 0,
   };
 
   const formation = {
@@ -74,6 +76,7 @@ export function createState(VIEW_W, VIEW_H) {
     powerups: [], // dropped powerups (treats, fish, hearts)
     beams: [],
     gameOver: false,
+    respawnDelay: 0, // Delay before respawning after death
     // powerup timers
     treatActive: false,
     treatT: 0,
@@ -317,20 +320,23 @@ export function resetGame(state) {
   state.player.flash = 0;
   state.player.captured = false;
   state.player.captureT = 0;
-  state.player.dual = false;
+  state.player.dual = CFG.godMode ? true : false;
+  state.player.invulnerable = false;
+  state.player.invulnerableT = 0;
   state.captorId = null;
   state.capturedShip = null;
   state.rescueShip = null;
-  state.treatActive = false;
-  state.treatT = 0;
-  state.fishActive = false;
-  state.fishT = 0;
+  state.treatActive = CFG.godMode ? true : false;
+  state.treatT = CFG.godMode ? Infinity : 0;
+  state.fishActive = CFG.godMode ? true : false;
+  state.fishT = CFG.godMode ? Infinity : 0;
   state.beams.length = 0;
   state.beamReserved = {};
 
   state.gameOver = false;
   state.gameState = GAME_STATE.PLAYING;
   state.wave = 1;
+  state.respawnDelay = 0;
 
   spawnWave(state);
 }
@@ -401,6 +407,10 @@ function updatePaused(dt, state, keys) {
   if (keys.has('escape') || keys.has('p')) {
     keys.delete('escape');
     keys.delete('p');
+    // Resume to the appropriate music state
+    if (window.gameplayMusicStarted) {
+      playGameplayMusic();
+    }
     state.gameState = GAME_STATE.PLAYING;
   }
 }
@@ -444,6 +454,7 @@ function updatePlaying(dt, state, keys) {
   if (keys.has('escape') || keys.has('p')) {
     keys.delete('escape');
     keys.delete('p');
+    stopAllMusic();
     state.gameState = GAME_STATE.PAUSED;
     return;
   }
@@ -535,6 +546,15 @@ function updatePlaying(dt, state, keys) {
       playShot();
     }
   }
+
+  // Update invulnerability timer
+  if (state.player.invulnerable) {
+    state.player.invulnerableT -= dt;
+    if (state.player.invulnerableT <= 0) {
+      state.player.invulnerable = false;
+    }
+  }
+
   state.player.flash = Math.max(0, state.player.flash - dt);
 
   // player bullets
@@ -580,10 +600,10 @@ function updatePlaying(dt, state, keys) {
     const p = state.powerups[i];
     p.y += p.vy * dt;
     
-    // Slight angle drift (away from gizmo)
+    // Slight angle drift (TOWARDS gizmo, 50% reduced magnitude)
     const dx = (p.x - (state.player.x + state.player.w / 2));
     const magnitude = Math.max(1, Math.abs(dx));
-    p.x += (dx / magnitude) * 20 * dt; // Drift away slowly
+    p.x -= (dx / magnitude) * CFG.powerupDriftTowardsMagnitude * dt; // Drift towards gizmo
     
     // Check if player collects it
     if (!state.gameOver && state.player.alive) {
@@ -603,6 +623,9 @@ function updatePlaying(dt, state, keys) {
           playCapture();
         } else if (p.type === 'heart') {
           state.player.lives++;
+          // Respawn invulnerability for extra life pickup
+          state.player.invulnerable = true;
+          state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
           playCapture();
         }
         
@@ -907,8 +930,8 @@ function updatePlaying(dt, state, keys) {
     if (hit) state.bullets.splice(bi, 1);
   }
 
-  // collisions: enemy bullets -> player (fish provides invulnerability)
-  if (!state.gameOver && state.player.alive && !state.player.hitThisFrame && !state.fishActive) {
+  // collisions: enemy bullets -> player (fish/invulnerability provides protection)
+  if (!state.gameOver && state.player.alive && !state.player.hitThisFrame && !state.fishActive && !state.player.invulnerable) {
     for (let i = state.ebullets.length - 1; i >= 0; i--) {
       const b = state.ebullets[i];
       if (aabb(b, state.player)) {
@@ -934,10 +957,23 @@ function updatePlaying(dt, state, keys) {
             state.gameOver = true;
             state.beams.length = 0;
           } else {
-            // Player still has lives - respawn but DON'T release captor/capturedShip
+            // Player still has lives - respawn with delay and invulnerability
+            // Reset all enemies to formation
+            const sway = Math.sin(state.formation.swayT * Math.PI * 2) * state.formation.swayAmp;
+            for (const e of state.enemies) {
+              e.mode = 'formation';
+              e.segIdx = e.path.length - 1;
+              e.x = e.slotX - e.w/2 + sway;
+              e.y = e.slotY;
+              e.beaming = false;
+            }
+            // Set respawn delay and invulnerability
+            state.respawnDelay = CFG.respawnDelay;
             state.player.x = state.VIEW_W / 2 - 12;
             state.player.y = state.VIEW_H - 28;
             state.player.captureT = 0;
+            state.player.invulnerable = true;
+            state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
           }
         }
         break;
