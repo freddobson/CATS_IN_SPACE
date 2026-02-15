@@ -2,9 +2,10 @@ html, body {
   margin: 0;
   background: #000000;
   overflow: hidden;
+  text-align: center;
 }
 canvas {
-  display: block;
+  display: inline-block;
 }
 /* Star Wars crawl effect */
 #crawl-container {
@@ -184,7 +185,7 @@ canvas {
 /* Show mobile controls on touch devices / small screens */
 @media (max-width: 768px) {
   canvas {
-    max-height: 70vh;
+    max-height: 90vh;
     width: auto;
     image-rendering: pixelated;
   }
