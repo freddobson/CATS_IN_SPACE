@@ -51,7 +51,7 @@ canvas {
   width: 100%;
   height: 100%;
   transform-origin: 50% 100%;
-  animation: crawl 40s ease-in-out forwards;
+  animation: crawl 35s ease-in-out forwards;
   transform: rotateX(70deg) translateZ(0);
 }
 
@@ -60,7 +60,7 @@ canvas {
     transform: rotateX(70deg) translateZ(0) translateY(400px);
     opacity: 1;
   }
-  75% {
+  90% {
     opacity: 1;
   }
   100% {
@@ -78,14 +78,14 @@ canvas {
 }
 
 .crawl h1 {
-  font-size: 56px;
+  font-size: 42px;
   font-weight: bold;
   margin-bottom: 20px;
   letter-spacing: 5px;
 }
 
 .crawl p {
-  font-size: 40px;
+  font-size: 30px;
   line-height: 1.6;
   letter-spacing: 2px;
 }
