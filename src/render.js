@@ -262,15 +262,20 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
   ctx.fillText(`SCORE ${state.player.score}`, 8, 15);
   
   // Powerup status (left side, below score)
-  ctx.fillStyle = "rgba(0,0,0,0.5)";
-  ctx.fillRect(4, 20, 70, 14);
+  if (state.treatActive || state.fishActive) {
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    const powerupLines = (state.treatActive ? 1 : 0) + (state.fishActive ? 1 : 0);
+    ctx.fillRect(4, 20, 70, 8 + powerupLines * 9);
+  }
   ctx.fillStyle = "#ffffff";
   ctx.font = "8px monospace";
+  let statusY = 30;
   if (state.treatActive) {
-    ctx.fillText(`TREAT: ${state.treatT.toFixed(1)}s`, 8, 31);
+    ctx.fillText(`TREAT: ${state.treatT.toFixed(1)}s`, 8, statusY);
+    statusY += 9;
   }
   if (state.fishActive) {
-    ctx.fillText(`FISH: ${state.fishT.toFixed(1)}s`, 8, 31);
+    ctx.fillText(`FISH: ${state.fishT.toFixed(1)}s`, 8, statusY);
   }
   
   // Lives display (right side)

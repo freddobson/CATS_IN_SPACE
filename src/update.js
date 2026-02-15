@@ -321,8 +321,8 @@ export function resetGame(state) {
   state.player.captured = false;
   state.player.captureT = 0;
   state.player.dual = CFG.godMode ? true : false;
-  state.player.invulnerable = false;
-  state.player.invulnerableT = 0;
+  state.player.invulnerable = CFG.godMode ? true : false;
+  state.player.invulnerableT = CFG.godMode ? Infinity : 0;
   state.captorId = null;
   state.capturedShip = null;
   state.rescueShip = null;
