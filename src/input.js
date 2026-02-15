@@ -41,10 +41,11 @@ function setupMobileControls() {
     const centerX = rect.width / 2;
     const deadzone = rect.width * 0.2; // 20% deadzone in center
     
-    // Update indicator position (allow some overhang on both sides)
-    const indicatorX = Math.max(0, Math.min(rect.width, x));
+    // Update indicator position (centered on touch, clamped to slider bounds)
+    const indicatorRadius = 30; // Half of 60px indicator width
+    const indicatorX = Math.max(indicatorRadius, Math.min(rect.width - indicatorRadius, x));
     sliderIndicator.style.left = `${indicatorX}px`;
-    sliderIndicator.style.transform = 'translateX(0)';
+    sliderIndicator.style.transform = 'translateX(-50%)';
     
     // Clear both keys first
     keys.delete('arrowleft');
