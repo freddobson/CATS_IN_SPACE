@@ -395,9 +395,11 @@ function updateTitle(dt, state, keys) {
   
   // Press ENTER to start
   if (keys.has('enter')) {
+    keys.delete('enter');
     stopAllMusic();
     window.titleMusicStarted = false;
     window.gameplayMusicStarted = false;
+    window.victoryMusicStarted = false;
     resetGame(state);
   }
 }
@@ -418,6 +420,10 @@ function updatePaused(dt, state, keys) {
 function updateGameOver(dt, state, keys) {
   // Press ENTER to restart
   if (keys.has('enter')) {
+    stopAllMusic();
+    window.titleMusicStarted = false;
+    window.gameplayMusicStarted = false;
+    window.victoryMusicStarted = false;
     resetGame(state);
   }
 }
