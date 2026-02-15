@@ -841,7 +841,12 @@ function updatePlaying(dt, state, keys) {
   for (const e of state.enemies) {
     if (e.mode === 'spawning') continue;
     
-    if (!state.gameOver && state.player.alive && !state.player.hitThisFrame && !state.player.invulnerable && aabb(e, state.player)) {
+    if (!state.gameOver && state.player.alive && !state.player.hitThisFrame && aabb(e, state.player)) {
+      // Skip collision if invulnerable
+      if (state.player.invulnerable) {
+        continue;
+      }
+      
       // damage player, spawn explosion, and remove the enemy
       state.player.hitThisFrame = true;
       state.player.flash = 0.25;
