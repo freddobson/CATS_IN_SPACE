@@ -1,5 +1,7 @@
 // Simple WebAudio-based SFX helper (no external assets required)
 let audioCtx = null;
+let musicTimeouts = []; // Track all pending music timeouts
+
 function ensureCtx() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -142,6 +144,11 @@ export function stopAllMusic() {
     clearInterval(window.gameMusicInterval);
     window.gameMusicInterval = null;
   }
+  // Clear all pending setTimeout callbacks
+  for (const timeoutId of musicTimeouts) {
+    clearTimeout(timeoutId);
+  }
+  musicTimeouts = [];
 }
 
 function playMusicNote(freq, duration) {
@@ -178,7 +185,8 @@ export function playMenuMusic() {
     
     let time = 0;
     for (const note of notes) {
-      setTimeout(() => playMusicNote(note.freq, note.dur), time * 1000);
+      const timeoutId = setTimeout(() => playMusicNote(note.freq, note.dur), time * 1000);
+      musicTimeouts.push(timeoutId);
       time += note.dur;
     }
     
@@ -206,7 +214,8 @@ export function playGameplayMusic() {
     
     let time = 0;
     for (const note of pattern) {
-      setTimeout(() => playMusicNote(note.freq, note.dur), time * 1000);
+      const timeoutId = setTimeout(() => playMusicNote(note.freq, note.dur), time * 1000);
+      musicTimeouts.push(timeoutId);
       time += note.dur;
     }
     
