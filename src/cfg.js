@@ -82,6 +82,7 @@ export const CFG = {
   
   powerupDriftSpeed: 40, // pixels/sec downward
   powerupDriftTowardsMagnitude: 10, // slight drift towards player (50% of away-drift)
+  powerupCatchRadius: 16, // collision radius for collecting powerups
 
   // game progression
   wavesForVictory: 10,
