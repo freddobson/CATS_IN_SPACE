@@ -195,6 +195,11 @@ canvas {
 
 /* Show mobile controls on touch devices / small screens */
 @media (max-width: 768px) {
+  html, body {
+    align-items: flex-start;
+    padding-top: 5px;
+  }
+  
   canvas {
     width: auto;
     height: 65vh;
