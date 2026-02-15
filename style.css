@@ -9,12 +9,12 @@ canvas {
 /* Star Wars crawl effect */
 #crawl-container {
   position: fixed;
-  top: 40%;
+  top: 25%;
   left: 50%;
   width: 400px;
   height: 600px;
   margin-left: -200px;
-  margin-top: -200px;
+  margin-top: -150px;
   perspective: 600px;
   opacity: 0;
   animation: fadein 1s ease-in forwards;
@@ -38,13 +38,10 @@ canvas {
 
 @keyframes crawl {
   0% {
-    transform: rotateX(70deg) translateZ(0) translateY(100vh);
-    opacity: 0;
-  }
-  10% {
+    transform: rotateX(70deg) translateZ(0) translateY(400px);
     opacity: 1;
   }
-  80% {
+  75% {
     opacity: 1;
   }
   100% {

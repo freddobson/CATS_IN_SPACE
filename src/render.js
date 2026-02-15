@@ -215,13 +215,6 @@ function renderTitle(state, ctx, VIEW_W, VIEW_H) {
   ctx.textAlign = "center";
   ctx.fillText("PRESS ENTER TO START", VIEW_W / 2, VIEW_H - 20);
 
-  // Controls
-  ctx.fillStyle = "#6db6ff";
-  ctx.font = "8px monospace";
-  ctx.fillText("ARROW KEYS / WASD - MOVE", VIEW_W / 2, VIEW_H - 8);
-  ctx.fillStyle = "#7CFF6B";
-  ctx.fillText("SPACE - FIRE    ESC - PAUSE", VIEW_W / 2, VIEW_H - 1);
-
   ctx.textAlign = "left";
 }
 
