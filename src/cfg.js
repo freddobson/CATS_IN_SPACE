@@ -24,7 +24,7 @@ export const CFG = {
   lives: 3,
   respawnInvulnerabilityDuration: 1.5, // seconds of invulnerability after respawn
   respawnDelay: 1.5, // seconds before respawning
-  godMode: false, // Start with dual + permanent powerups
+  godMode: true, // Start with dual + permanent powerups
 
   // bullets (speeds reduced 33%)
   bulletSpeed: 174,
@@ -72,8 +72,8 @@ export const CFG = {
   // powerups
   treatDropChance: 0.05, // 5% chance
   treatDuration: 30, // seconds
-  treatSpeedBoost: 1.1, // 10% speed increase
-  treatFireBoost: 1.15, // 15% fire rate increase
+  treatSpeedBoost: 1.3, // 30% speed increase
+  treatFireBoost: 1.5, // 50% fire rate increase
   
   fishDropChance: 0.03, // 3% chance
   fishDuration: 5, // seconds invulnerability

@@ -59,6 +59,29 @@ function drawEnemy(ctx, state, e) {
   }
 }
 
+function drawPowerup(ctx, state, p) {
+  const assets = state.assets || {};
+  const x = Math.floor(p.x - 8);
+  const y = Math.floor(p.y - 8);
+  const w = 16, h = 16;
+  
+  const sprite = assets[p.type]; // treat, fish, or heart
+  if (sprite) {
+    ctx.drawImage(sprite, x, y, w, h);
+    return;
+  }
+  
+  // Fallback: colored squares if sprite missing
+  if (p.type === 'treat') {
+    ctx.fillStyle = "#FFB366";
+  } else if (p.type === 'fish') {
+    ctx.fillStyle = "#FF99FF";
+  } else if (p.type === 'heart') {
+    ctx.fillStyle = "#FF4466";
+  }
+  ctx.fillRect(x, y, w, h);
+}
+
 export function render(state, ctx, VIEW_W, VIEW_H) {
   beginView(ctx, VIEW_W, VIEW_H);
 
@@ -214,18 +237,7 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
 
   // powerups (treats, fish, hearts)
   for (const p of state.powerups) {
-    const iconX = p.x | 0;
-    const iconY = p.y | 0;
-    if (p.type === 'treat') {
-      ctx.fillStyle = "#FFB366";
-      ctx.fillRect(iconX - 8, iconY - 8, 16, 16);
-    } else if (p.type === 'fish') {
-      ctx.fillStyle = "#FF99FF";
-      ctx.fillRect(iconX - 8, iconY - 8, 16, 16);
-    } else if (p.type === 'heart') {
-      ctx.fillStyle = "#FF4466";
-      ctx.fillRect(iconX - 8, iconY - 8, 16, 16);
-    }
+    drawPowerup(ctx, state, p);
   }
 
   // capturedShip (if exists, draw it following the captor)

@@ -620,6 +620,8 @@ function updatePlaying(dt, state, keys) {
         } else if (p.type === 'fish') {
           state.fishActive = true;
           state.fishT = CFG.fishDuration;
+          state.player.invulnerable = true;
+          state.player.invulnerableT = CFG.fishDuration;
           playCapture();
         } else if (p.type === 'heart') {
           state.player.lives++;
