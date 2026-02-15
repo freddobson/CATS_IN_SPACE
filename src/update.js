@@ -330,6 +330,8 @@ export function resetGame(state) {
   state.treatT = CFG.godMode ? Infinity : 0;
   state.fishActive = CFG.godMode ? true : false;
   state.fishT = CFG.godMode ? Infinity : 0;
+  // Track if god mode was activated so we keep infinite timers
+  state.godModeActive = CFG.godMode;
   state.beams.length = 0;
   state.beamReserved = {};
 
@@ -697,18 +699,18 @@ function updatePlaying(dt, state, keys) {
         if (p.type === 'treat') {
           state.treatActive = true;
           // Don't overwrite Infinity in god mode
-          if (state.treatT !== Infinity) {
+          if (!state.godModeActive) {
             state.treatT = CFG.treatDuration;
           }
           playCapture(); // Chomping sound
         } else if (p.type === 'fish') {
           state.fishActive = true;
           // Don't overwrite Infinity in god mode
-          if (state.fishT !== Infinity) {
+          if (!state.godModeActive) {
             state.fishT = CFG.fishDuration;
           }
           state.player.invulnerable = true;
-          if (state.player.invulnerableT !== Infinity) {
+          if (!state.godModeActive) {
             state.player.invulnerableT = CFG.fishDuration;
           }
           playCapture();
@@ -717,7 +719,7 @@ function updatePlaying(dt, state, keys) {
           // Respawn invulnerability for extra life pickup
           state.player.invulnerable = true;
           // Don't overwrite Infinity in god mode
-          if (state.player.invulnerableT !== Infinity) {
+          if (!state.godModeActive) {
             state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
           }
           playCapture();
@@ -1072,7 +1074,9 @@ function updatePlaying(dt, state, keys) {
             state.player.y = state.VIEW_H - 28;
             state.player.captureT = 0;
             state.player.invulnerable = true;
-            state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
+            if (!state.godModeActive) {
+              state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
+            }
           }
         }
         break;
