@@ -297,6 +297,23 @@ function renderPlaying(state, ctx, VIEW_W, VIEW_H) {
   ctx.textAlign = "center";
   ctx.fillText(`WAVE ${state.wave}`, VIEW_W / 2, 12);
   ctx.textAlign = "left";
+  
+  // Wave start announcement overlay
+  if (state.waveStartDelay > 0) {
+    // Semi-transparent overlay
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    
+    // Blinking wave announcement
+    const showMessage = Math.floor(state.waveStartDelay / 0.3) % 2 === 0;
+    if (showMessage) {
+      ctx.fillStyle = "#ffd14a";
+      ctx.font = "bold 20px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`WAVE ${state.wave}`, VIEW_W / 2, VIEW_H / 2);
+    }
+    ctx.textAlign = "left";
+  }
 }
 
 function renderPaused(state, ctx, VIEW_W, VIEW_H) {

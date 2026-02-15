@@ -23,7 +23,7 @@ export const CFG = {
   fireCooldown: 0.243,
   lives: 3,
   respawnInvulnerabilityDuration: 1.5, // seconds of invulnerability after respawn
-  respawnDelay: 1.5, // seconds before respawning
+  respawnDelay: 3.0, // seconds before respawning
   godMode: false, // Start with dual + permanent powerups
 
   // bullets (speeds reduced 33%)

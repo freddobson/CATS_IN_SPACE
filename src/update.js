@@ -77,6 +77,7 @@ export function createState(VIEW_W, VIEW_H) {
     beams: [],
     gameOver: false,
     respawnDelay: 0, // Delay before respawning after death
+    waveStartDelay: 0, // Delay at start of wave showing "WAVE X"
     // powerup timers
     treatActive: false,
     treatT: 0,
@@ -339,6 +340,7 @@ export function resetGame(state) {
   state.gameState = GAME_STATE.PLAYING;
   state.wave = 1;
   state.respawnDelay = 0;
+  state.waveStartDelay = 0;
 
   spawnWave(state);
 }
@@ -544,6 +546,29 @@ function updatePlaying(dt, state, keys) {
     stopAllMusic();
     playGameplayMusic();
     window.gameplayMusicStarted = true;
+  }
+  
+  // Handle wave start delay (countdown before wave begins)
+  if (state.waveStartDelay > 0) {
+    state.waveStartDelay -= dt;
+    // Pause most game logic during wave start
+    return;
+  }
+  
+  // Handle respawn delay (countdown before player respawns)
+  if (state.respawnDelay > 0) {
+    state.respawnDelay -= dt;
+    if (state.respawnDelay <= 0) {
+      // Respawn player
+      state.player.alive = true;
+      state.player.x = state.VIEW_W / 2 - 12;
+      state.player.y = state.VIEW_H - 28;
+      state.player.captureT = 0;
+      state.player.invulnerable = true;
+      if (!state.godModeActive) {
+        state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
+      }
+    }
   }
   
   // Reset hit flag at start of frame to allow collision detection
@@ -1002,11 +1027,19 @@ function updatePlaying(dt, state, keys) {
           // Clear beams but preserve capturedShip
           state.beams.length = 0;
         } else {
-          // Player still has lives - respawn but DON'T release captor/capturedShip
-          // The captured ship should persist until the captor is destroyed
-          state.player.x = state.VIEW_W / 2 - 12;
-          state.player.y = state.VIEW_H - 28;
-          state.player.captureT = 0;
+          // Player still has lives - hide player and set respawn delay
+          // Reset all enemies to formation
+          const sway = Math.sin(state.formation.swayT * Math.PI * 2) * state.formation.swayAmp;
+          for (const e of state.enemies) {
+            e.mode = 'formation';
+            e.segIdx = e.path.length - 1;
+            e.x = e.slotX - e.w/2 + sway;
+            e.y = e.slotY;
+            e.beaming = false;
+          }
+          // Hide player during respawn delay
+          state.player.alive = false;
+          state.respawnDelay = CFG.respawnDelay;
         }
       }
 
@@ -1093,7 +1126,7 @@ function updatePlaying(dt, state, keys) {
             state.gameOver = true;
             state.beams.length = 0;
           } else {
-            // Player still has lives - respawn with delay and invulnerability
+            // Player still has lives - hide player and set respawn delay
             // Reset all enemies to formation
             const sway = Math.sin(state.formation.swayT * Math.PI * 2) * state.formation.swayAmp;
             for (const e of state.enemies) {
@@ -1103,15 +1136,9 @@ function updatePlaying(dt, state, keys) {
               e.y = e.slotY;
               e.beaming = false;
             }
-            // Set respawn delay and invulnerability
+            // Hide player during respawn delay
+            state.player.alive = false;
             state.respawnDelay = CFG.respawnDelay;
-            state.player.x = state.VIEW_W / 2 - 12;
-            state.player.y = state.VIEW_H - 28;
-            state.player.captureT = 0;
-            state.player.invulnerable = true;
-            if (!state.godModeActive) {
-              state.player.invulnerableT = CFG.respawnInvulnerabilityDuration;
-            }
           }
         }
         break;
@@ -1291,12 +1318,16 @@ function updatePlaying(dt, state, keys) {
 
   // wave refill if empty
   if (!state.gameOver && state.enemies.length === 0) {
-    state.wave++;
+    // Don't increment wave past 10 after victory
+    if (state.wave < CFG.wavesForVictory) {
+      state.wave++;
+    }
     // Check for victory condition
     if (state.wave > CFG.wavesForVictory) {
       state.gameState = GAME_STATE.VICTORY;
       playLevelComplete();
     } else {
+      state.waveStartDelay = 3.0; // 3 second delay before wave starts
       spawnWave(state);
     }
   }
