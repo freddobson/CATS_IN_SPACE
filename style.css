@@ -127,7 +127,7 @@ canvas {
   border: 2px solid #ffd14a;
   border-radius: 45px;
   position: relative;
-  margin-left: 10px;
+  margin-left: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -222,7 +222,7 @@ canvas {
   #dpad-slider {
     width: 260px;
     height: 98px;
-    margin-left: 10px;
+    margin-left: 25px;
   }
   
   .fire-btn {
