@@ -60,11 +60,11 @@ canvas {
     transform: rotateX(70deg) translateZ(0) translateY(400px);
     opacity: 1;
   }
-  95% {
+  98% {
     opacity: 1;
   }
   100% {
-    transform: rotateX(70deg) translateZ(0) translateY(-800px);
+    transform: rotateX(70deg) translateZ(0) translateY(-1200px);
     opacity: 0;
   }
 }
