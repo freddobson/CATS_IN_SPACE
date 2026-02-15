@@ -179,6 +179,7 @@ function setupMobileControls() {
   
   // Desktop click support for pause
   canvas.addEventListener('click', (e) => {
+    unlockAudio();
     if (pauseCooldown) return;
     
     const rect = canvas.getBoundingClientRect();
