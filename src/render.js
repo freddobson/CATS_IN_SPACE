@@ -1,4 +1,5 @@
 import { CFG, GAME_STATE } from './cfg.js';
+import { isAudioUnlocked } from './input.js';
 
 // Rendering helpers. `render(state, ctx, VIEW_W, VIEW_H)` draws the full frame.
 export function beginView(ctx, VIEW_W, VIEW_H) {
@@ -92,10 +93,10 @@ export function render(state, ctx, VIEW_W, VIEW_H) {
   ctx.fillStyle = "#ffffff";
   for (const s of state.stars) ctx.fillRect(s.x | 0, s.y | 0, s.r, s.r);
 
-  // Show/hide crawl and press-enter prompt based on game state
+  // Show/hide crawl and press-enter prompt based on game state and audio unlock
   const crawlContainer = document.getElementById('crawl-container');
   const pressEnter = document.getElementById('press-enter');
-  if (state.gameState === GAME_STATE.TITLE) {
+  if (state.gameState === GAME_STATE.TITLE && isAudioUnlocked()) {
     if (crawlContainer) crawlContainer.style.display = 'block';
     if (pressEnter) pressEnter.style.display = 'block';
   } else {

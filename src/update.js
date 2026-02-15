@@ -2,6 +2,7 @@ import { CFG, GAME_STATE, PLAYER_SPEED, BULLET_SPEED, ENEMY_BULLET_SPEED, FIRE_C
 import { bezier3, buildWavePaths, makeDivePath } from './paths.js';
 import { makeEnemy, formationSlot } from './entities.js';
 import { playShot, playExplosion, playHit, playCapture, playBeamStart, playLevelComplete, playMenuMusic, playGameplayMusic, playEndingMusic, stopAllMusic, unlockAudio } from './sfx.js';
+import { isAudioUnlocked } from './input.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -393,8 +394,8 @@ export function update(dt, state, keys) {
 }
 
 function updateTitle(dt, state, keys) {
-  // Start menu music on first frame in title
-  if (!window.titleMusicStarted) {
+  // Start menu music only after audio is unlocked
+  if (!window.titleMusicStarted && isAudioUnlocked()) {
     playMenuMusic();
     window.titleMusicStarted = true;
   }

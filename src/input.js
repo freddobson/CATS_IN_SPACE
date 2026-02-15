@@ -6,6 +6,10 @@ export const keys = new Set();
 // Track if audio has been unlocked
 let audioUnlocked = false;
 
+export function isAudioUnlocked() {
+  return audioUnlocked;
+}
+
 addEventListener("keydown", (e) => {
   keys.add(e.key.toLowerCase());
   
