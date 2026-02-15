@@ -1068,7 +1068,7 @@ function updatePlaying(dt, state, keys) {
 
       // cone half-width grows with length
       const dy = (state.player.y + state.player.h/2) - (captor.y + captor.h);
-      if (dy > 0 && dy <= b.len && !state.capturedShip && state.player.alive && !state.player.hitThisFrame) {
+      if (dy > 0 && dy <= b.len && !state.capturedShip && state.player.alive && !state.player.hitThisFrame && !state.player.invulnerable) {
         const dx = (state.player.x + state.player.w/2) - (captor.x + captor.w/2);
         const baseHalf = (CFG.beamWidth || 10) / 2;
         const coneExtra = CFG.beamConeSpread || 60;
