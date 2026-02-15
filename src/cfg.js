@@ -24,7 +24,7 @@ export const CFG = {
   lives: 3,
   respawnInvulnerabilityDuration: 1.5, // seconds of invulnerability after respawn
   respawnDelay: 1.5, // seconds before respawning
-  godMode: true, // Start with dual + permanent powerups
+  godMode: false, // Start with dual + permanent powerups
 
   // bullets (speeds reduced 33%)
   bulletSpeed: 174,
