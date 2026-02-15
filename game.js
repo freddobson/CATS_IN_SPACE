@@ -29,7 +29,8 @@ async function start() {
     console.warn('asset load failed', e);
   }
 
-  resetGame(state);
+  // Don't call resetGame here - let the game start on TITLE screen
+  // resetGame will be called when user presses ENTER in updateTitle
 
   let last = performance.now();
 
