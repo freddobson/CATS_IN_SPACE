@@ -218,8 +218,14 @@ canvas {
   }
   
   .d-pad-btn {
-    width: 75px;
-    height: 75px;
-    font-size: 32px;
+    width: 98px;
+    height: 98px;
+    font-size: 42px;
+  }
+  
+  .fire-btn {
+    width: 104px;
+    height: 104px;
+    font-size: 42px;
   }
 }
