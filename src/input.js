@@ -31,32 +31,89 @@ function setupMobileControls() {
   
   if (!leftBtn) return; // No mobile controls on this page
   
-  // Left button
-  leftBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    keys.add('arrowleft');
-    unlockAudio();
-  });
-  leftBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
+  // Track active touch for d-pad sliding
+  let dpadTouchId = null;
+  
+  // Helper to get which button a touch is over
+  function getButtonAtPoint(x, y) {
+    const leftRect = leftBtn.getBoundingClientRect();
+    const rightRect = rightBtn.getBoundingClientRect();
+    
+    if (x >= leftRect.left && x <= leftRect.right && y >= leftRect.top && y <= leftRect.bottom) {
+      return 'left';
+    }
+    if (x >= rightRect.left && x <= rightRect.right && y >= rightRect.top && y <= rightRect.bottom) {
+      return 'right';
+    }
+    return null;
+  }
+  
+  // Update keys based on button
+  function updateDpadKeys(button) {
     keys.delete('arrowleft');
-  });
+    keys.delete('arrowright');
+    
+    if (button === 'left') {
+      keys.add('arrowleft');
+    } else if (button === 'right') {
+      keys.add('arrowright');
+    }
+  }
+  
+  // D-pad touch handlers (support sliding)
+  const handleDpadTouchStart = (e) => {
+    e.preventDefault();
+    if (dpadTouchId === null && e.changedTouches.length > 0) {
+      const touch = e.changedTouches[0];
+      dpadTouchId = touch.identifier;
+      const button = getButtonAtPoint(touch.clientX, touch.clientY);
+      updateDpadKeys(button);
+      unlockAudio();
+    }
+  };
+  
+  const handleDpadTouchMove = (e) => {
+    e.preventDefault();
+    if (dpadTouchId !== null) {
+      for (let touch of e.changedTouches) {
+        if (touch.identifier === dpadTouchId) {
+          const button = getButtonAtPoint(touch.clientX, touch.clientY);
+          updateDpadKeys(button);
+          break;
+        }
+      }
+    }
+  };
+  
+  const handleDpadTouchEnd = (e) => {
+    e.preventDefault();
+    for (let touch of e.changedTouches) {
+      if (touch.identifier === dpadTouchId) {
+        dpadTouchId = null;
+        keys.delete('arrowleft');
+        keys.delete('arrowright');
+        break;
+      }
+    }
+  };
+  
+  leftBtn.addEventListener('touchstart', handleDpadTouchStart);
+  leftBtn.addEventListener('touchmove', handleDpadTouchMove);
+  leftBtn.addEventListener('touchend', handleDpadTouchEnd);
+  leftBtn.addEventListener('touchcancel', handleDpadTouchEnd);
+  
+  rightBtn.addEventListener('touchstart', handleDpadTouchStart);
+  rightBtn.addEventListener('touchmove', handleDpadTouchMove);
+  rightBtn.addEventListener('touchend', handleDpadTouchEnd);
+  rightBtn.addEventListener('touchcancel', handleDpadTouchEnd);
+  
+  // Mouse support for d-pad (desktop testing)
   leftBtn.addEventListener('mousedown', () => {
     keys.add('arrowleft');
     unlockAudio();
   });
   leftBtn.addEventListener('mouseup', () => keys.delete('arrowleft'));
   
-  // Right button
-  rightBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    keys.add('arrowright');
-    unlockAudio();
-  });
-  rightBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    keys.delete('arrowright');
-  });
   rightBtn.addEventListener('mousedown', () => {
     keys.add('arrowright');
     unlockAudio();
