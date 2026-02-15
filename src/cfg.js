@@ -16,7 +16,7 @@ export const CFG = {
 
   // rendering
   tile: 1,
-  starCount: 120,
+  starCount: 60,
 
   // player (speeds reduced 33% for bigger sprites, then +10%, fire rate +35%)
   playerSpeed: 96,
