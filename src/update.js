@@ -1322,7 +1322,7 @@ function updatePlaying(dt, state, keys) {
   }
 
   // wave refill if empty
-  if (!state.gameOver && state.enemies.length === 0) {
+  if (!state.gameOver && state.enemies.length === 0 && !state.waveReadyToSpawn) {
     state.wave++;
     // Check for victory condition
     if (state.wave > CFG.wavesForVictory) {
